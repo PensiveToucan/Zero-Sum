@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript">
+var TILE_SIZE = 100;
+var GRID_SIZE = 5;
+
+var inPath = false;
+var currentPath = [];
+
+class Tile {
+	constructor(x, y, val) {
+		this.x = x;
+		this.y = y;
+		this.val = val;
+		this.highlight = false;
+	}
+
+	render(ctx) {
+		ctx.fillStyle = this.highlight ? 'rgb(200, 200, 200)' :
+			'rgb(255, 255, 255)';
+		ctx.fillRect(this.x, this.y, TILE_SIZE, TILE_SIZE);
+		ctx.font = '20px sans-serif';
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillText(this.val, this.x + TILE_SIZE / 2 - 10, this.y +
+			TILE_SIZE / 2);
+	}
+
+}
+
+class TileGrid {
+	constructor(x, y) {
+		this.grid = new Array(GRID_SIZE);
+		for (var i = 0; i < GRID_SIZE; i++) {
+			this.grid[i] = new Array(GRID_SIZE);
+		}
+
+		for (var row = 0; row < GRID_SIZE; row++) {
+			for (var col = 0; col < GRID_SIZE; col++) {
+				this.grid[row][col] = new Tile(
+					x + col * TILE_SIZE,
+					y + row * TILE_SIZE,
+					getRandomIntInclusive(-9, 9));
+			}
+		}
+	}
+
+	render(ctx) {
+		ctx.strokeStyle = 'rgb(100, 100, 100)';
+		for (var i = 0; i < GRID_SIZE; i++) {
+			for (var j = 0; j < GRID_SIZE; j++) {
+				this.grid[i][j].render(ctx);
+			}
+		}
+	}
+
+	getTileForPoint(x, y) {
+		for (var i = 0; i < GRID_SIZE; i++) {
+			for (var j = 0; j < GRID_SIZE; j++) {
+				var t = this.grid[i][j];
+				if (Math.abs(x - t.x) <= TILE_SIZE && Math.abs(y - t.y) <=
+					TILE_SIZE) {
+					return {
+						'row': i,
+						'col': j
+					};
+				}
+			}
+		}
+	}
+
+	highlightTile(ctx, row, col) {
+		this.grid[row][col].highlight = true;
+		this.grid[row][col].render(ctx);
+	}
+
+	clearHighlights(ctx) {
+		for (var i = 0; i < GRID_SIZE; i++) {
+			for (var j = 0; j < GRID_SIZE; j++) {
+				this.grid[i][j].highlight = false;
+				this.grid[i][j].render(ctx);
+			}
+		}
+	}
+}
+
+function getRandomIntInclusive(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Only adds the |coords| to the path if they haven't been added before and are
+// adjacent to an existing tile in the path.
+function maybeAddToPath(coords) {
+	if (!coords) {
+		return false;
+	}
+	for (var t of currentPath) {
+		if (t.row === coords.row && t.col === coords.col) {
+			return false;
+		}
+	}
+
+	if (currentPath.length === 0) {
+		currentPath.push(coords);
+		return true;
+	} else {
+		for (t of currentPath) {
+			if ((t.row === coords.row && t.col === coords.col + 1) ||
+				(t.row === coords.row && t.col === coords.col - 1) ||
+				(t.row - 1 === coords.row && t.col === coords.col) ||
+				(t.row + 1 === coords.row && t.col === coords.col)) {
+				currentPath.push(coords);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function draw() {
+	var canvas = document.getElementById("tutorial");
+	var rect = canvas.getBoundingClientRect();
+	var ctx = canvas.getContext("2d", {
+		alpha: false
+	});
+
+	ctx.fillStyle = 'rgb(255, 255, 255)';
+	ctx.fillRect(0, 0, 500, 500);
+
+	var grid = new TileGrid(0, 0);
+	grid.render(ctx);
+
+	canvas.addEventListener('mousedown', function(e) {
+		if (!inPath) {
+			inPath = true;
+			var coords = grid.getTileForPoint(e.clientX - rect.left, e
+				.clientY - rect.top);
+			if (maybeAddToPath(coords)) {
+				grid.highlightTile(ctx, coords.row, coords.col);
+			}
+		}
+	});
+	canvas.addEventListener('mousemove', function(e) {
+		if (inPath) {
+			var coords = grid.getTileForPoint(e.clientX - rect.left, e
+				.clientY - rect.top);
+			if (maybeAddToPath(coords)) {
+				grid.highlightTile(ctx, coords.row, coords.col);
+			}
+		}
+	});
+	canvas.addEventListener('mouseup', function(e) {
+		if (inPath) {
+			inPath = false;
+			grid.clearHighlights(ctx);
+			// TODO: Start animations.
+		}
+	});
+}
+</script>
+</head>
+<body onload="draw()">
+<canvas id="tutorial" width="500" height="500" style="border: thin solid gray"></canvas>
+</body>
+</html>
