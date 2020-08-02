@@ -8,6 +8,10 @@
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
+var TILE_BG_COL = 'rgb(255, 255, 255)';
+var TILE_HIGHLIGHT_COL = 'rgb(220, 220, 220)';
+var TILE_TEXT_COL = 'rgb(60, 60, 60)';
+
 var inPath = false;
 var currentPath = [];
 var grid;
@@ -31,14 +35,13 @@ class Tile {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = this.highlight ? 'rgb(200, 200, 200)' :
-			'rgb(255, 255, 255)';
+		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
 		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
 			2,
 			this.tileSize, this.tileSize);
 		if (this.showText) {
 			ctx.font = '20px sans-serif';
-			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillStyle = TILE_TEXT_COL;
 			ctx.fillText(this.val, this.cx - 10, this.cy);
 		}
 	}
@@ -81,7 +84,7 @@ class TileGrid {
 	getTileForPoint(x, y) {
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let row = 0; row < GRID_SIZE; row++) {
-				var t = this.grid[col][row];
+				let t = this.grid[col][row];
 				if (Math.abs(x - t.cx) <= t.tileSize / 2 && Math.abs(y - t
 						.cy) <= t.tileSize / 2) {
 					return {
@@ -114,6 +117,24 @@ function getRandomIntInclusive(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function getCurrentPathSum() {
+	let sum_value_int = 0;
+	for (const t of currentPath) {
+		sum_value_int += grid.grid[t.col][t.row].val;
+	}
+	return sum_value_int;
+}
+
+function updateCurrentPathSumText() {
+	let sum_value = document.getElementById("sum_value");
+	if (currentPath.length > 0) {
+		sum_value.textContent = getCurrentPathSum();
+	} else {
+		// Treat an empty path as having no sum as opposed to a "zero" sum
+		sum_value.textContent = "";
+	}
+}
+
 // Only adds the |coords| to the path if they haven't been added before and are
 // adjacent to an existing tile in the path.
 function maybeAddToPath(coords) {
@@ -128,6 +149,7 @@ function maybeAddToPath(coords) {
 
 	if (currentPath.length === 0) {
 		currentPath.push(coords);
+		updateCurrentPathSumText();
 		return true;
 	} else {
 		for (const t of currentPath) {
@@ -136,6 +158,7 @@ function maybeAddToPath(coords) {
 				(t.row - 1 === coords.row && t.col === coords.col) ||
 				(t.row + 1 === coords.row && t.col === coords.col)) {
 				currentPath.push(coords);
+				updateCurrentPathSumText();
 				return true;
 			}
 		}
@@ -148,7 +171,7 @@ function vanishFrame() {
 	// 1. First we vanish all the highlighted tiles with a "collapse"
 	// animation.
 	// ================================================================
-	var allVanishesDone = true;
+	let allVanishesDone = true;
 	for (const coord of currentPath) {
 		if (grid.grid[coord.col][coord.row].tileSize > 0) {
 			allVanishesDone = false;
@@ -173,7 +196,7 @@ function vanishFrame() {
 
 		// Calculate how much each non-highlighted tile needs to move down
 		// and store it in its |drop| attr.
-		var newTilesPerCol = [];
+		let newTilesPerCol = [];
 		for (let col = 0; col < GRID_SIZE; col++) {
 			newTilesPerCol.push(0);
 			// Move from bottom to top keeping track of the number
@@ -183,7 +206,7 @@ function vanishFrame() {
 				if (grid.grid[col][row] === undefined) {
 					newTilesPerCol[col]++;
 				} else {
-					var drop = newTilesPerCol[col];
+					let drop = newTilesPerCol[col];
 					grid.grid[col][row].drop = drop * TILE_SIZE;
 					// Reassign the current tile to its post
 					// animation (col, row) in the grid.
@@ -195,7 +218,7 @@ function vanishFrame() {
 		// drop down to make up for the vanishing tiles.
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let negRow = 0; negRow < newTilesPerCol[col]; negRow++) {
-				var t = new Tile(
+				let t = new Tile(
 					grid.x + col * TILE_SIZE + TILE_SIZE / 2,
 					grid.y - (negRow + 1) * TILE_SIZE + TILE_SIZE / 2,
 					getRandomIntInclusive(-9, 9));
@@ -213,7 +236,7 @@ function vanishFrame() {
 }
 
 function translateFrame() {
-	var allTranslatesDone = true;
+	let allTranslatesDone = true;
 	for (let col = 0; col < GRID_SIZE; col++) {
 		for (let row = 0; row < GRID_SIZE; row++) {
 			if (grid.grid[col][row].drop > 0) {
@@ -233,9 +256,8 @@ function translateFrame() {
 }
 
 function draw() {
-	var canvas = document.getElementById("tutorial");
-	var rect = canvas.getBoundingClientRect();
-	console.log(rect);
+	let canvas = document.getElementById("tutorial");
+	let rect = canvas.getBoundingClientRect();
 	ctx = canvas.getContext("2d", {
 		alpha: false
 	});
@@ -249,10 +271,8 @@ function draw() {
 	canvas.addEventListener('mousedown', function(e) {
 		if (!inPath) {
 			inPath = true;
-			console.log("point = " + e.clientX + ", " + e.clientY);
-			var coords = grid.getTileForPoint(e.clientX - rect.left, e
+			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
-			console.log(coords);
 			if (maybeAddToPath(coords)) {
 				grid.highlightTile(ctx, coords.col, coords.row);
 			}
@@ -260,7 +280,7 @@ function draw() {
 	});
 	canvas.addEventListener('mousemove', function(e) {
 		if (inPath) {
-			var coords = grid.getTileForPoint(e.clientX - rect.left, e
+			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (maybeAddToPath(coords)) {
 				grid.highlightTile(ctx, coords.col, coords.row);
@@ -270,14 +290,23 @@ function draw() {
 	document.addEventListener('mouseup', function(e) {
 		if (inPath) {
 			inPath = false;
-			vanishFrame();
+			if (getCurrentPathSum() === 0) {
+				vanishFrame();
+			} else {
+				grid.clearHighlights(ctx);
+				currentPath = [];
+				updateCurrentPathSumText();
+			}
 		}
 	});
 }
-
 </script>
 </head>
 <body onload="draw()">
+<div id="sum_view">
+	<span id="sum_label">&Sigma;</span>
+	<span id="sum_value"></span>
+</div>
 <canvas id="tutorial" width="500" height="500" style="border: thin solid gray"></canvas>
 </body>
 </html>
