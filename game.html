@@ -3,28 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <script type="text/javascript">
+/* TODO: Make everything IE compatible */
+
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
 var inPath = false;
 var currentPath = [];
+var grid;
+var ctx;
 
 class Tile {
-	constructor(x, y, val) {
-		this.x = x;
-		this.y = y;
+	// cx and cy store the coordinates of the center of the tile.
+	constructor(cx, cy, val) {
+		this.cx = cx;
+		this.cy = cy;
 		this.val = val;
 		this.highlight = false;
+
+		// Used to store the distance to move downward during a translation
+		// animation.
+		this.drop = 0;
+
+		// Used to store the tile size during a vanish animation.
+		this.tileSize = TILE_SIZE;
+		this.showText = true;
 	}
 
 	render(ctx) {
 		ctx.fillStyle = this.highlight ? 'rgb(200, 200, 200)' :
 			'rgb(255, 255, 255)';
-		ctx.fillRect(this.x, this.y, TILE_SIZE, TILE_SIZE);
-		ctx.font = '20px sans-serif';
-		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.fillText(this.val, this.x + TILE_SIZE / 2 - 10, this.y +
-			TILE_SIZE / 2);
+		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
+			2,
+			this.tileSize, this.tileSize);
+		if (this.showText) {
+			ctx.font = '20px sans-serif';
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillText(this.val, this.cx - 10, this.cy);
+		}
 	}
 
 }
@@ -32,54 +48,61 @@ class Tile {
 class TileGrid {
 	constructor(x, y) {
 		this.grid = new Array(GRID_SIZE);
-		for (var i = 0; i < GRID_SIZE; i++) {
+		this.x = x;
+		this.y = y;
+		for (let i = 0; i < GRID_SIZE; i++) {
 			this.grid[i] = new Array(GRID_SIZE);
 		}
 
-		for (var row = 0; row < GRID_SIZE; row++) {
-			for (var col = 0; col < GRID_SIZE; col++) {
-				this.grid[row][col] = new Tile(
-					x + col * TILE_SIZE,
-					y + row * TILE_SIZE,
+		// The grid is stored in column major format for now in order to
+		// maintain equivalence: x, y <=> col, row.
+		for (let col = 0; col < GRID_SIZE; col++) {
+			for (let row = 0; row < GRID_SIZE; row++) {
+				this.grid[col][row] = new Tile(
+					x + col * TILE_SIZE + TILE_SIZE / 2,
+					y + row * TILE_SIZE + TILE_SIZE / 2,
 					getRandomIntInclusive(-9, 9));
 			}
 		}
 	}
 
 	render(ctx) {
+		ctx.fillStyle = 'rgb(255, 255, 255)';
+		ctx.fillRect(0, 0, 500, 500);
 		ctx.strokeStyle = 'rgb(100, 100, 100)';
-		for (var i = 0; i < GRID_SIZE; i++) {
-			for (var j = 0; j < GRID_SIZE; j++) {
-				this.grid[i][j].render(ctx);
+		for (let col = 0; col < GRID_SIZE; col++) {
+			for (let row = 0; row < GRID_SIZE; row++) {
+				this.grid[col][row].render(ctx);
 			}
 		}
 	}
 
+	// (x, y) must be relative to the grid and not to the window.
 	getTileForPoint(x, y) {
-		for (var i = 0; i < GRID_SIZE; i++) {
-			for (var j = 0; j < GRID_SIZE; j++) {
-				var t = this.grid[i][j];
-				if (Math.abs(x - t.x) <= TILE_SIZE && Math.abs(y - t.y) <=
-					TILE_SIZE) {
+		for (let col = 0; col < GRID_SIZE; col++) {
+			for (let row = 0; row < GRID_SIZE; row++) {
+				var t = this.grid[col][row];
+				if (Math.abs(x - t.cx) <= t.tileSize / 2 && Math.abs(y - t
+						.cy) <= t.tileSize / 2) {
 					return {
-						'row': i,
-						'col': j
+						'col': col,
+						'row': row
 					};
 				}
 			}
 		}
 	}
 
-	highlightTile(ctx, row, col) {
-		this.grid[row][col].highlight = true;
-		this.grid[row][col].render(ctx);
+	highlightTile(ctx, col, row) {
+		this.grid[col][row].highlight = true;
+		this.grid[col][row].render(ctx);
 	}
 
 	clearHighlights(ctx) {
-		for (var i = 0; i < GRID_SIZE; i++) {
-			for (var j = 0; j < GRID_SIZE; j++) {
-				this.grid[i][j].highlight = false;
-				this.grid[i][j].render(ctx);
+		for (let col = 0; col < GRID_SIZE; col++) {
+			for (let row = 0; row < GRID_SIZE; row++) {
+				this.grid[col][row].highlight = false;
+				this.grid[col][row].render(ctx);
 			}
 		}
 	}
@@ -97,7 +120,7 @@ function maybeAddToPath(coords) {
 	if (!coords) {
 		return false;
 	}
-	for (var t of currentPath) {
+	for (const t of currentPath) {
 		if (t.row === coords.row && t.col === coords.col) {
 			return false;
 		}
@@ -107,7 +130,7 @@ function maybeAddToPath(coords) {
 		currentPath.push(coords);
 		return true;
 	} else {
-		for (t of currentPath) {
+		for (const t of currentPath) {
 			if ((t.row === coords.row && t.col === coords.col + 1) ||
 				(t.row === coords.row && t.col === coords.col - 1) ||
 				(t.row - 1 === coords.row && t.col === coords.col) ||
@@ -120,26 +143,118 @@ function maybeAddToPath(coords) {
 	return false;
 }
 
+function vanishFrame() {
+	// ================================================================
+	// 1. First we vanish all the highlighted tiles with a "collapse"
+	// animation.
+	// ================================================================
+	var allVanishesDone = true;
+	for (const coord of currentPath) {
+		if (grid.grid[coord.col][coord.row].tileSize > 0) {
+			allVanishesDone = false;
+			grid.grid[coord.col][coord.row].showText = false;
+			// 10 is a divisor of the tile size so |tileSize| will evenly
+			// reach zero eventually.
+			grid.grid[coord.col][coord.row].tileSize -= 10;
+		} else {
+			grid.grid[coord.col][coord.row] = undefined;
+		}
+	}
+	if (!allVanishesDone) {
+		grid.render(ctx);
+		requestAnimationFrame(vanishFrame);
+	} else {
+		currentPath = [];
+
+		// =========================================================
+		// 2. Second, we translate all the tiles that were affected
+		// by the removal of the tiles in the first step, downwards.
+		// =========================================================
+
+		// Calculate how much each non-highlighted tile needs to move down
+		// and store it in its |drop| attr.
+		var newTilesPerCol = [];
+		for (let col = 0; col < GRID_SIZE; col++) {
+			newTilesPerCol.push(0);
+			// Move from bottom to top keeping track of the number
+			// of highlighted tiles seen so far. This will be the
+			// number of spots each tile needs to move down.
+			for (let row = GRID_SIZE - 1; row >= 0; row--) {
+				if (grid.grid[col][row] === undefined) {
+					newTilesPerCol[col]++;
+				} else {
+					var drop = newTilesPerCol[col];
+					grid.grid[col][row].drop = drop * TILE_SIZE;
+					// Reassign the current tile to its post
+					// animation (col, row) in the grid.
+					grid.grid[col][row + drop] = grid.grid[col][row];
+				}
+			}
+		}
+		// Create new tiles in the negative space above the canvas that will
+		// drop down to make up for the vanishing tiles.
+		for (let col = 0; col < GRID_SIZE; col++) {
+			for (let negRow = 0; negRow < newTilesPerCol[col]; negRow++) {
+				var t = new Tile(
+					grid.x + col * TILE_SIZE + TILE_SIZE / 2,
+					grid.y - (negRow + 1) * TILE_SIZE + TILE_SIZE / 2,
+					getRandomIntInclusive(-9, 9));
+				t.drop = newTilesPerCol[col] * TILE_SIZE;
+				// Assign the new tile to its post animation
+				// (col, row) in the grid.
+				grid.grid[col][newTilesPerCol[col] - negRow - 1] = t;
+			}
+		}
+
+		// Translation animation loop. Each tile t moves t.drop * TILE_SIZE
+		// downwards.
+		translateFrame();
+	}
+}
+
+function translateFrame() {
+	var allTranslatesDone = true;
+	for (let col = 0; col < GRID_SIZE; col++) {
+		for (let row = 0; row < GRID_SIZE; row++) {
+			if (grid.grid[col][row].drop > 0) {
+				allTranslatesDone = false;
+				// 10 is always a divisor of the distance
+				// any tile needs to move so |drop| will
+				// evenly reach zero eventually.
+				grid.grid[col][row].drop -= 10;
+				grid.grid[col][row].cy += 10;
+			}
+		}
+	}
+	if (!allTranslatesDone) {
+		grid.render(ctx);
+		requestAnimationFrame(translateFrame);
+	}
+}
+
 function draw() {
 	var canvas = document.getElementById("tutorial");
 	var rect = canvas.getBoundingClientRect();
-	var ctx = canvas.getContext("2d", {
+	console.log(rect);
+	ctx = canvas.getContext("2d", {
 		alpha: false
 	});
 
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.fillRect(0, 0, 500, 500);
 
-	var grid = new TileGrid(0, 0);
+	grid = new TileGrid(0, 0);
 	grid.render(ctx);
 
 	canvas.addEventListener('mousedown', function(e) {
 		if (!inPath) {
 			inPath = true;
+			console.log("point = " + e.clientX + ", " + e.clientY);
 			var coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
+			console.log(coords);
 			if (maybeAddToPath(coords)) {
-				grid.highlightTile(ctx, coords.row, coords.col);
+				grid.highlightTile(ctx, coords.col, coords.row);
 			}
 		}
 	});
@@ -148,18 +263,18 @@ function draw() {
 			var coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (maybeAddToPath(coords)) {
-				grid.highlightTile(ctx, coords.row, coords.col);
+				grid.highlightTile(ctx, coords.col, coords.row);
 			}
 		}
 	});
-	canvas.addEventListener('mouseup', function(e) {
+	document.addEventListener('mouseup', function(e) {
 		if (inPath) {
 			inPath = false;
-			grid.clearHighlights(ctx);
-			// TODO: Start animations.
+			vanishFrame();
 		}
 	});
 }
+
 </script>
 </head>
 <body onload="draw()">
