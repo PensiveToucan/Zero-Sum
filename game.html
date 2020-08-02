@@ -17,6 +17,8 @@ var currentPath = [];
 var grid;
 var ctx;
 
+var animationRunning = false;
+
 class Tile {
 	// cx and cy store the coordinates of the center of the tile.
 	constructor(cx, cy, val) {
@@ -40,9 +42,11 @@ class Tile {
 			2,
 			this.tileSize, this.tileSize);
 		if (this.showText) {
+			ctx.textAlign="center";
+			ctx.textBaseline = "middle";
 			ctx.font = '20px sans-serif';
 			ctx.fillStyle = TILE_TEXT_COL;
-			ctx.fillText(this.val, this.cx - 10, this.cy);
+			ctx.fillText(this.val, this.cx, this.cy);
 		}
 	}
 
@@ -167,6 +171,7 @@ function maybeAddToPath(coords) {
 }
 
 function vanishFrame() {
+	animationRunning = true;
 	// ================================================================
 	// 1. First we vanish all the highlighted tiles with a "collapse"
 	// animation.
@@ -252,6 +257,8 @@ function translateFrame() {
 	if (!allTranslatesDone) {
 		grid.render(ctx);
 		requestAnimationFrame(translateFrame);
+	} else {
+		animationRunning = false;
 	}
 }
 
@@ -271,6 +278,9 @@ function draw() {
 	canvas.addEventListener('mousedown', function(e) {
 		if (!inPath) {
 			inPath = true;
+			if (animationRunning) {
+				return;
+			}
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (maybeAddToPath(coords)) {
@@ -280,6 +290,9 @@ function draw() {
 	});
 	canvas.addEventListener('mousemove', function(e) {
 		if (inPath) {
+			if (animationRunning) {
+				return;
+			}
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (maybeAddToPath(coords)) {
@@ -290,6 +303,9 @@ function draw() {
 	document.addEventListener('mouseup', function(e) {
 		if (inPath) {
 			inPath = false;
+			if (animationRunning) {
+				return;
+			}
 			if (getCurrentPathSum() === 0) {
 				vanishFrame();
 			} else {
