@@ -8,9 +8,9 @@
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
-var TILE_BG_COL = 'rgb(255, 255, 255)';
-var TILE_HIGHLIGHT_COL = 'rgb(220, 220, 220)';
-var TILE_TEXT_COL = 'rgb(60, 60, 60)';
+var TILE_BG_COL = '#fefefe';
+var TILE_HIGHLIGHT_COL = '#e7e7e7';
+var TILE_TEXT_COL = '#666666';
 
 var inPath = false;
 var currentPath = [];
@@ -42,7 +42,7 @@ class Tile {
 			2,
 			this.tileSize, this.tileSize);
 		if (this.showText) {
-			ctx.textAlign="center";
+			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = '20px sans-serif';
 			ctx.fillStyle = TILE_TEXT_COL;
@@ -74,7 +74,7 @@ class TileGrid {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = 'rgb(255, 255, 255)';
+		ctx.fillStyle = TILE_BG_COL;
 		ctx.fillRect(0, 0, 500, 500);
 		ctx.strokeStyle = 'rgb(100, 100, 100)';
 		for (let col = 0; col < GRID_SIZE; col++) {
@@ -264,12 +264,20 @@ function translateFrame() {
 
 function draw() {
 	let canvas = document.getElementById("tutorial");
-	let rect = canvas.getBoundingClientRect();
-	ctx = canvas.getContext("2d", {
-		alpha: false
-	});
 
-	ctx.fillStyle = 'rgb(255, 255, 255)';
+	// Handle retina displays with non-unit pixel ratios
+	let dpr = window.devicePixelRatio || 1;
+	let canvasDimCss = GRID_SIZE * TILE_SIZE;
+	canvas.width = canvasDimCss * dpr;
+	canvas.height = canvasDimCss * dpr;
+	canvas.style.width = canvasDimCss + "px";
+	canvas.style.height = canvasDimCss + "px";
+	ctx = canvas.getContext("2d");
+	ctx.scale(dpr, dpr);
+
+	let rect = canvas.getBoundingClientRect();
+
+	ctx.fillStyle = TILE_BG_COL;
 	ctx.fillRect(0, 0, 500, 500);
 
 	grid = new TileGrid(0, 0);
