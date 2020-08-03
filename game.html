@@ -11,9 +11,12 @@ var GRID_SIZE = 5;
 var TILE_BG_COL = '#fefefe';
 var TILE_HIGHLIGHT_COL = '#e7e7e7';
 var TILE_TEXT_COL = '#666666';
+var MULTIPLIER_TILE_BG_COL = "#e07a5f";
+var SQUARE_TILE_BG_COL = "#be6f7f";
 
 var inPath = false;
 var currentPath = [];
+var currentSum = 0;
 var grid;
 var ctx;
 
@@ -50,6 +53,76 @@ class Tile {
 		}
 	}
 
+	applyOp(x) {
+		return x + this.val;
+	}
+}
+
+class MultiplierTile {
+	constructor(cx, cy, multiplier) {
+		this.cx = cx;
+		this.cy = cy;
+		this.multiplier = multiplier;
+		this.highlight = false;
+		this.drop = 0;
+		this.tileSize = TILE_SIZE;
+		this.showText = true;
+	}
+
+	render(ctx) {
+		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
+		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
+			2,
+			this.tileSize, this.tileSize);
+		ctx.fillStyle = MULTIPLIER_TILE_BG_COL;
+		ctx.fillRect(this.cx - this.tileSize / 4, this.cy - this.tileSize /
+			4,
+			this.tileSize / 2, this.tileSize / 2);
+		if (this.showText) {
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.font = '20px sans-serif';
+			ctx.fillStyle = TILE_BG_COL;
+			ctx.fillText("x" + this.multiplier, this.cx, this.cy);
+		}
+	}
+
+	applyOp(x) {
+		return x * this.multiplier;
+	}
+}
+
+class SquareTile {
+	constructor(cx, cy) {
+		this.cx = cx;
+		this.cy = cy;
+		this.highlight = false;
+		this.drop = 0;
+		this.tileSize = TILE_SIZE;
+		this.showText = true;
+	}
+
+	render(ctx) {
+		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
+		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
+			2,
+			this.tileSize, this.tileSize);
+		ctx.fillStyle = SQUARE_TILE_BG_COL;
+		ctx.fillRect(this.cx - this.tileSize / 4, this.cy - this.tileSize /
+			4,
+			this.tileSize / 2, this.tileSize / 2);
+		if (this.showText) {
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.font = '20px sans-serif';
+			ctx.fillStyle = TILE_BG_COL;
+			ctx.fillText("x²", this.cx, this.cy);
+		}
+	}
+
+	applyOp(x) {
+		return x * x;
+	}
 }
 
 class TileGrid {
@@ -76,7 +149,6 @@ class TileGrid {
 	render(ctx) {
 		ctx.fillStyle = TILE_BG_COL;
 		ctx.fillRect(0, 0, 500, 500);
-		ctx.strokeStyle = 'rgb(100, 100, 100)';
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let row = 0; row < GRID_SIZE; row++) {
 				this.grid[col][row].render(ctx);
@@ -121,18 +193,10 @@ function getRandomIntInclusive(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getCurrentPathSum() {
-	let sum_value_int = 0;
-	for (const t of currentPath) {
-		sum_value_int += grid.grid[t.col][t.row].val;
-	}
-	return sum_value_int;
-}
-
 function updateCurrentPathSumText() {
 	let sum_value = document.getElementById("sum_value");
 	if (currentPath.length > 0) {
-		sum_value.textContent = getCurrentPathSum();
+		sum_value.textContent = currentSum;
 	} else {
 		// Treat an empty path as having no sum as opposed to a "zero" sum
 		sum_value.textContent = "";
@@ -153,6 +217,7 @@ function maybeAddToPath(coords) {
 
 	if (currentPath.length === 0) {
 		currentPath.push(coords);
+		currentSum = grid.grid[coords.col][coords.row].applyOp(currentSum);
 		updateCurrentPathSumText();
 		return true;
 	} else {
@@ -162,6 +227,7 @@ function maybeAddToPath(coords) {
 				(t.row - 1 === coords.row && t.col === coords.col) ||
 				(t.row + 1 === coords.row && t.col === coords.col)) {
 				currentPath.push(coords);
+				currentSum = grid.grid[coords.col][coords.row].applyOp(currentSum);
 				updateCurrentPathSumText();
 				return true;
 			}
@@ -193,6 +259,11 @@ function vanishFrame() {
 		requestAnimationFrame(vanishFrame);
 	} else {
 		currentPath = [];
+
+		// We update the sum text here since the path has been cleared
+		// and so the currentSum being zero will be treated differently.
+		currentSum = 0;
+		updateCurrentPathSumText();
 
 		// =========================================================
 		// 2. Second, we translate all the tiles that were affected
@@ -314,11 +385,12 @@ function draw() {
 			if (animationRunning) {
 				return;
 			}
-			if (getCurrentPathSum() === 0) {
+			if (currentSum == 0) {
 				vanishFrame();
 			} else {
 				grid.clearHighlights(ctx);
 				currentPath = [];
+				currentSum = 0;
 				updateCurrentPathSumText();
 			}
 		}
