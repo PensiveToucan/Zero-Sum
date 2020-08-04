@@ -427,6 +427,42 @@ function generateTile(cx, cy) {
 	}
 }
 
+// Causes a tile to fidget horizontally.
+function fidget(coords, ctx) {
+	animationRunning = true;
+	let t = grid.grid[coords.col][coords.row];
+
+	// Keeps track of which tile will fidget.
+	grid.fidgetCoords = coords;
+	grid.fidgetOrigX = t.cx;
+	grid.fidgetStartTime = Date.now();
+
+	// Keeps track of whether the tile just moved left or right.
+	grid.fidgetToggle = true;
+
+	fidgetFrame();
+}
+
+function fidgetFrame() {
+	let now = Date.now();
+	let coords = grid.fidgetCoords;
+	if (now - grid.fidgetStartTime > 150) {
+		// Reset tile before returning
+		grid.grid[coords.col][coords.row].cx = grid.fidgetOrigX;
+		grid.render(ctx);
+		animationRunning = false;
+		return;
+	}
+	if (grid.fidgetToggle) {
+		grid.grid[coords.col][coords.row].cx += 3;
+	} else {
+		grid.grid[coords.col][coords.row].cx -= 3;
+	}
+	grid.render(ctx);
+	grid.fidgetToggle = !grid.fidgetToggle;
+	requestAnimationFrame(fidgetFrame);
+}
+
 function draw() {
 	let canvas = document.getElementById("tutorial");
 
@@ -457,7 +493,12 @@ function draw() {
 			}
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
-			if (maybeAddToPath(coords)) {
+			if (currentPath.length === 0 &&
+					grid.grid[coords.col][coords.row].getType() != "ADD") {
+				// Prevent arithmetic op tiles from being the first in the path.
+				grid.clearHighlights(ctx);
+				fidget(coords);
+			} else if (maybeAddToPath(coords)) {
 				grid.highlightTile(ctx, coords.col, coords.row);
 			}
 		}
@@ -469,7 +510,12 @@ function draw() {
 			}
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
-			if (maybeAddToPath(coords)) {
+			if (currentPath.length === 0 &&
+					grid.grid[coords.col][coords.row].getType() != "ADD") {
+				// Prevent arithmetic op tiles from being the first in the path.
+				grid.clearHighlights(ctx);
+				fidget(coords);
+			} else if (maybeAddToPath(coords)) {
 				grid.highlightTile(ctx, coords.col, coords.row);
 			}
 		}
