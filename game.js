@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<script type="text/javascript">
 /* TODO: Make everything IE compatible */
 
 var TILE_SIZE = 100;
@@ -539,13 +534,3 @@ function draw() {
 		}
 	});
 }
-</script>
-</head>
-<body onload="draw()">
-<div id="sum_view">
-	<span id="sum_label">&Sigma;</span>
-	<span id="sum_value"></span>
-</div>
-<canvas id="tutorial" width="500" height="500" style="border: thin solid gray"></canvas>
-</body>
-</html>
