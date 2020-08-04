@@ -20,6 +20,16 @@ var currentSum = 0;
 var grid;
 var ctx;
 
+// Time is measured in ticks. Each tick happens when a new tile is generated.
+// This is used to keep track of when the last tile of a particular type was
+// generated.
+var tick = 0;
+var lastGen = {
+	"ADD": 0,
+	"MULTIPLIER": 0,
+	"SQUARE": 0
+};
+
 var animationRunning = false;
 
 class Tile {
@@ -56,6 +66,10 @@ class Tile {
 	applyOp(x) {
 		return x + this.val;
 	}
+
+	getType() {
+		return "ADD";
+	}
 }
 
 class MultiplierTile {
@@ -83,12 +97,20 @@ class MultiplierTile {
 			ctx.textBaseline = "middle";
 			ctx.font = '20px sans-serif';
 			ctx.fillStyle = TILE_BG_COL;
-			ctx.fillText("x" + this.multiplier, this.cx, this.cy);
+			if (this.multiplier === -1) {
+				ctx.fillText("-x", this.cx, this.cy);
+			} else {
+				ctx.fillText("x" + this.multiplier, this.cx, this.cy);
+			}
 		}
 	}
 
 	applyOp(x) {
 		return x * this.multiplier;
+	}
+
+	getType() {
+		return "MULTIPLIER";
 	}
 }
 
@@ -123,6 +145,10 @@ class SquareTile {
 	applyOp(x) {
 		return x * x;
 	}
+
+	getType() {
+		return "SQUARE";
+	}
 }
 
 class TileGrid {
@@ -133,15 +159,17 @@ class TileGrid {
 		for (let i = 0; i < GRID_SIZE; i++) {
 			this.grid[i] = new Array(GRID_SIZE);
 		}
+	}
 
+	init() {
 		// The grid is stored in column major format for now in order to
 		// maintain equivalence: x, y <=> col, row.
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let row = 0; row < GRID_SIZE; row++) {
-				this.grid[col][row] = new Tile(
-					x + col * TILE_SIZE + TILE_SIZE / 2,
-					y + row * TILE_SIZE + TILE_SIZE / 2,
-					getRandomIntInclusive(-9, 9));
+				this.grid[col][row] = generateTile(
+					this.x + col * TILE_SIZE + TILE_SIZE / 2,
+					this.y + row * TILE_SIZE + TILE_SIZE / 2
+				);
 			}
 		}
 	}
@@ -227,7 +255,8 @@ function maybeAddToPath(coords) {
 				(t.row - 1 === coords.row && t.col === coords.col) ||
 				(t.row + 1 === coords.row && t.col === coords.col)) {
 				currentPath.push(coords);
-				currentSum = grid.grid[coords.col][coords.row].applyOp(currentSum);
+				currentSum = grid.grid[coords.col][coords.row].applyOp(
+					currentSum);
 				updateCurrentPathSumText();
 				return true;
 			}
@@ -294,10 +323,9 @@ function vanishFrame() {
 		// drop down to make up for the vanishing tiles.
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let negRow = 0; negRow < newTilesPerCol[col]; negRow++) {
-				let t = new Tile(
+				let t = generateTile(
 					grid.x + col * TILE_SIZE + TILE_SIZE / 2,
-					grid.y - (negRow + 1) * TILE_SIZE + TILE_SIZE / 2,
-					getRandomIntInclusive(-9, 9));
+					grid.y - (negRow + 1) * TILE_SIZE + TILE_SIZE / 2);
 				t.drop = newTilesPerCol[col] * TILE_SIZE;
 				// Assign the new tile to its post animation
 				// (col, row) in the grid.
@@ -333,6 +361,72 @@ function translateFrame() {
 	}
 }
 
+// Generates various types of tiles based on certain probabilities while
+// also accounting for the frequency of each type of tile on the grid and
+// when it was last generated.
+function generateTile(cx, cy) {
+	tick++;
+	let numPositive = 0;
+	let numNegative = 0;
+	let numMultiplier = 0;
+	let numSquare = 0;
+	for (let col = 0; col < GRID_SIZE; col++) {
+		for (let row = 0; row < GRID_SIZE; row++) {
+			if (grid.grid[col][row] === undefined) {
+				// Will happen during grid initialization.
+				continue;
+			}
+			switch (grid.grid[col][row].getType()) {
+				case "ADD":
+					if (grid.grid[col][row].val > 0) {
+						numPositive++;
+					} else {
+						numNegative++;
+					}
+					break;
+				case "MULTIPLIER":
+					numMultiplier++;
+					break;
+				case "SQUARE":
+					numSquare++;
+					break;
+			}
+		}
+	}
+
+	let r = Math.random();
+	if (r > 0.9) {
+		// 2 MULTIPLIER
+		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
+			lastGen.MULTIPLIER = tick;
+			return new MultiplierTile(cx, cy, 2);
+		}
+	} else if (r > 0.8) {
+		// -1 MULTIPLIER
+		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
+			lastGen.MULTIPLIER = tick;
+			return new MultiplierTile(cx, cy, -1);
+		}
+	} else if (r > 0.7) {
+		// SQUARE
+		if ((tick - lastGen.SQUARE > 10) && numSquare < 1) {
+			lastGen.SQUARE = tick;
+			return new SquareTile(cx, cy);
+		}
+	}
+
+	// ADD (default)
+	// Don't let the ratio of positive to negative numbers skew too much in
+	// either direction.
+	if (numPositive - numNegative > 5) {
+		return new Tile(cx, cy, getRandomIntInclusive(-9, 0));
+	} else if (numNegative - numPositive > 5) {
+		return new Tile(cx, cy, getRandomIntInclusive(0, 9));
+	} else {
+		return new Tile(cx, cy, getRandomIntInclusive(-9, 9));
+	}
+}
+
 function draw() {
 	let canvas = document.getElementById("tutorial");
 
@@ -352,6 +446,7 @@ function draw() {
 	ctx.fillRect(0, 0, 500, 500);
 
 	grid = new TileGrid(0, 0);
+	grid.init();
 	grid.render(ctx);
 
 	canvas.addEventListener('mousedown', function(e) {
