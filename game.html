@@ -20,9 +20,11 @@ var currentSum = 0;
 var grid;
 var ctx;
 
-// Time is measured in ticks. Each tick happens when a new tile is generated.
-// This is used to keep track of when the last tile of a particular type was
-// generated.
+// "Tile time" is measured in ticks. Each tick happens when a new tile is
+// generated. I've set a minimum tick interval for each arithmetic op tile
+// to avoid having them show up too frequently (by utilizing the |lastgen|
+// variable).
+// Note that this is unrelated to any timer shown to the user.
 var tick = 0;
 var lastGen = {
 	"ADD": 0,
@@ -100,7 +102,7 @@ class MultiplierTile {
 			if (this.multiplier === -1) {
 				ctx.fillText("-x", this.cx, this.cy);
 			} else {
-				ctx.fillText("x" + this.multiplier, this.cx, this.cy);
+				ctx.fillText("×" + this.multiplier, this.cx, this.cy);
 			}
 		}
 	}
