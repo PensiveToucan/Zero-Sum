@@ -29,6 +29,12 @@ var lastGen = {
 
 var animationRunning = false;
 
+// Game control
+var enabled = false;
+var timeLeft = 0;
+var timerId;
+var currentPoints = 0;
+
 class Tile {
 	// cx and cy store the coordinates of the center of the tile.
 	constructor(cx, cy, val) {
@@ -460,6 +466,32 @@ function fidgetFrame() {
 	requestAnimationFrame(fidgetFrame);
 }
 
+function startTimer() {
+	timeLeft = 5;
+	document.getElementById("timer_value").textContent = timeLeft;
+	timerId = setInterval(function() {
+		if (timeLeft <= 0) {
+			clearInterval(timerId);
+			gameOver();
+		} else {
+			timeLeft--;
+			document.getElementById("timer_value").textContent = timeLeft;
+		}
+	}, 1000);
+}
+
+function gameOver() {
+	grid.clearHighlights(ctx);
+	currentPath = [];
+	updateCurrentPathSumText();
+	enabled = false;
+}
+
+function updatePoints() {
+	currentPoints += currentPath.length * currentPath.length;
+	document.getElementById("points_value").textContent = currentPoints;
+}
+
 function draw() {
 	let canvas = document.getElementById("tutorial");
 
@@ -483,6 +515,9 @@ function draw() {
 	grid.render(ctx);
 
 	canvas.addEventListener('mousedown', function(e) {
+		if (!enabled) {
+			return;
+		}
 		if (!inPath) {
 			inPath = true;
 			if (animationRunning) {
@@ -501,6 +536,9 @@ function draw() {
 		}
 	});
 	canvas.addEventListener('mousemove', function(e) {
+		if (!enabled) {
+			return;
+		}
 		if (inPath) {
 			if (animationRunning) {
 				return;
@@ -518,12 +556,16 @@ function draw() {
 		}
 	});
 	document.addEventListener('mouseup', function(e) {
+		if (!enabled) {
+			return;
+		}
 		if (inPath) {
 			inPath = false;
 			if (animationRunning) {
 				return;
 			}
 			if (currentSum == 0) {
+				updatePoints();
 				vanishFrame();
 			} else {
 				grid.clearHighlights(ctx);
@@ -532,5 +574,10 @@ function draw() {
 				updateCurrentPathSumText();
 			}
 		}
+	});
+
+	document.getElementById("start_game_btn").addEventListener('click', function(e) {
+		enabled = true;
+		startTimer();
 	});
 }

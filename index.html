@@ -5,10 +5,23 @@
 <script type="text/javascript" src="game.js"></script>
 </head>
 <body onload="draw()">
+<div id="">
+	<div id="timer_view">
+		<span id="timer_label">Time</span>
+		<span id="timer_value"></span>
+	</div>
+	<div id="points_view">
+		<span id="points_label">Points</span>
+		<span id="points_value"></span>
+	</div>
+</div>
 <div id="sum_view">
 	<span id="sum_label">&Sigma;</span>
 	<span id="sum_value"></span>
 </div>
+<div>
 <canvas id="tutorial" width="500" height="500" style="border: thin solid gray"></canvas>
+</div>
+<button type="button" id="start_game_btn">Start game</button> 
 </body>
 </html>
