@@ -1,27 +1,50 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<script type="text/javascript" src="game.js"></script>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="game.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
+
 <body onload="draw()">
-<div id="">
-	<div id="timer_view">
-		<span id="timer_label">Time</span>
-		<span id="timer_value"></span>
+	<div id="container" style="width: 500px;">
+		<div id="status-bar">
+			<div id="timer-view" class="status-block">
+				<div id="timer-label" class="label">Time</div>
+				<div id="timer-value">60</div>
+			</div>
+			<div id="points-view" class="status-block">
+				<div id="points-label" class="label">Points</div>
+				<div id="points-value">0</div>
+			</div>
+		</div>
+		<div id="sum-view">
+			<div id="sum-label" class="label">&Sigma;</div>
+			<div id="sum-value"></div>
+		</div>
+		<div id="canvas-container">
+			<canvas id="tutorial"></canvas>
+		</div>
+		<div class="overlay" id="welcome-overlay">
+			<h1 class="overlay-header">Zero Sum</h1>
+			<button class="overlay-btn" id="start-game-btn">Play</button>
+		</div>
+		<div class="overlay" id="game-over-overlay">
+			<h2 id="game-over-header">Game Over</h2>
+			<table id="game-over-table">
+				<tr>
+					<td>Score:</td>
+					<td>123</td>
+				</tr>
+				<tr>
+					<td>Best:</td>
+					<td>123</td>
+				</tr>
+			</table>
+			<button id="play-again-btn" class="overlay-btn">Play again</button>
+		</div>
 	</div>
-	<div id="points_view">
-		<span id="points_label">Points</span>
-		<span id="points_value"></span>
-	</div>
-</div>
-<div id="sum_view">
-	<span id="sum_label">&Sigma;</span>
-	<span id="sum_value"></span>
-</div>
-<div>
-<canvas id="tutorial" width="500" height="500" style="border: thin solid gray"></canvas>
-</div>
-<button type="button" id="start_game_btn">Start game</button> 
 </body>
+
 </html>

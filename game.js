@@ -225,7 +225,7 @@ function getRandomIntInclusive(min, max) {
 }
 
 function updateCurrentPathSumText() {
-	let sum_value = document.getElementById("sum_value");
+	let sum_value = document.getElementById("sum-value");
 	if (currentPath.length > 0) {
 		sum_value.textContent = currentSum;
 	} else {
@@ -468,16 +468,25 @@ function fidgetFrame() {
 
 function startTimer() {
 	timeLeft = 5;
-	document.getElementById("timer_value").textContent = timeLeft;
+	document.getElementById("timer-value").textContent = timeLeft;
 	timerId = setInterval(function() {
 		if (timeLeft <= 0) {
 			clearInterval(timerId);
 			gameOver();
 		} else {
 			timeLeft--;
-			document.getElementById("timer_value").textContent = timeLeft;
+			document.getElementById("timer-value").textContent =
+				timeLeft;
 		}
 	}, 1000);
+}
+
+function startGame() {
+	enabled = true;
+	for (let elem of document.getElementsByClassName("overlay")) {
+		elem.style.display = "none";
+	}
+	startTimer();
 }
 
 function gameOver() {
@@ -485,11 +494,12 @@ function gameOver() {
 	currentPath = [];
 	updateCurrentPathSumText();
 	enabled = false;
+	document.getElementById("game-over-overlay").style.display = "block";
 }
 
 function updatePoints() {
 	currentPoints += currentPath.length * currentPath.length;
-	document.getElementById("points_value").textContent = currentPoints;
+	document.getElementById("points-value").textContent = currentPoints;
 }
 
 function draw() {
@@ -526,7 +536,7 @@ function draw() {
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (currentPath.length === 0 &&
-					grid.grid[coords.col][coords.row].getType() != "ADD") {
+				grid.grid[coords.col][coords.row].getType() != "ADD") {
 				// Prevent arithmetic op tiles from being the first in the path.
 				grid.clearHighlights(ctx);
 				fidget(coords);
@@ -546,7 +556,7 @@ function draw() {
 			let coords = grid.getTileForPoint(e.clientX - rect.left, e
 				.clientY - rect.top);
 			if (currentPath.length === 0 &&
-					grid.grid[coords.col][coords.row].getType() != "ADD") {
+				grid.grid[coords.col][coords.row].getType() != "ADD") {
 				// Prevent arithmetic op tiles from being the first in the path.
 				grid.clearHighlights(ctx);
 				fidget(coords);
@@ -576,8 +586,13 @@ function draw() {
 		}
 	});
 
-	document.getElementById("start_game_btn").addEventListener('click', function(e) {
-		enabled = true;
-		startTimer();
-	});
+	document.getElementById("start-game-btn").addEventListener('click',
+		startGame);
+	document.getElementById("play-again-btn").addEventListener('click',
+		function() {
+			// Reset grid before restarting.
+			grid.init();
+			grid.render(ctx);
+			startGame();
+		});
 }

@@ -1,0 +1,80 @@
+body {
+	font-family: sans-serif;
+}
+#container {
+	display: table;
+	margin: 50px auto 0 auto;
+}
+#status-bar {
+	display: inline-block;
+	width: 100%;
+}
+.label {
+	color: #888888;
+}
+.status-block {
+	width: 100px;
+	text-align: center;
+}
+#timer-view {
+	float: left;
+}
+#points-view {
+	float: right;
+}
+#sum-view {
+	font-size: 30px;
+	padding: 10px;
+	position: relative;
+	margin: 0 0 50px 0;
+}
+#sum-label {
+	text-align: right;
+	position: absolute;
+	left: 0;
+	width: 49%;
+}
+#sum-value {
+	text-align: left;
+	position: absolute;
+	right: 0;
+	width: 49%;
+}
+#grid {
+	display: inline-block;
+	margin: 0px auto;
+}
+.overlay {
+	background: rgba(255, 255, 255, 0.85);
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+}
+#canvas-container {
+	position: relative;
+}
+#game-over-header {
+	color: #555555;
+	text-align: center;
+	margin-top: 20%;
+}
+#game-over-table {
+	color: #555555;
+	text-align: left;
+	margin: 0px auto;
+}
+.overlay-btn {
+	display: block;
+	margin: 20px auto;
+	padding: 5px 10px;
+}
+.overlay-header {
+	color: #555555;
+	text-align: center;
+	margin-top: 20%;
+}
+#game-over-overlay {
+	display: none;
+}
