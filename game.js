@@ -1,5 +1,4 @@
 /* TODO: Make everything IE compatible */
-
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
@@ -34,6 +33,14 @@ var enabled = false;
 var timeLeft = 0;
 var timerId;
 var currentPoints = 0;
+
+// Save best score
+try {
+	var bestScoreStorage = window.localStorage;
+} catch (e) {
+	var bestScoreStorage = null;
+	alert("Could not access local storage. Will not save best score.");
+}
 
 class Tile {
 	// cx and cy store the coordinates of the center of the tile.
@@ -282,8 +289,6 @@ function vanishFrame() {
 			// 10 is a divisor of the tile size so |tileSize| will evenly
 			// reach zero eventually.
 			grid.grid[coord.col][coord.row].tileSize -= 10;
-		} else {
-			grid.grid[coord.col][coord.row] = undefined;
 		}
 	}
 	if (!allVanishesDone) {
@@ -311,8 +316,9 @@ function vanishFrame() {
 			// of highlighted tiles seen so far. This will be the
 			// number of spots each tile needs to move down.
 			for (let row = GRID_SIZE - 1; row >= 0; row--) {
-				if (grid.grid[col][row] === undefined) {
+				if (grid.grid[col][row].highlight) {
 					newTilesPerCol[col]++;
+					delete grid.grid[col][row];
 				} else {
 					let drop = newTilesPerCol[col];
 					grid.grid[col][row].drop = drop * TILE_SIZE;
@@ -482,19 +488,42 @@ function startTimer() {
 }
 
 function startGame() {
+	currentPoints = 0;
+	updatePoints();
 	enabled = true;
+	// Hide all overlays and banners
 	for (let elem of document.getElementsByClassName("overlay")) {
 		elem.style.display = "none";
 	}
+	document.getElementById("game-over-high-score-banner").style.display =
+		"none";
 	startTimer();
 }
 
 function gameOver() {
-	grid.clearHighlights(ctx);
-	currentPath = [];
-	updateCurrentPathSumText();
+	if (!animationRunning) {
+		grid.clearHighlights(ctx);
+		currentPath = [];
+		updateCurrentPathSumText();
+	}
 	enabled = false;
 	document.getElementById("game-over-overlay").style.display = "block";
+	document.getElementById("game-over-score").textContent = currentPoints;
+	let bestScore = 0;
+	if (bestScoreStorage != null) {
+		bestScore = bestScoreStorage.getItem("best-score");
+		if ((bestScore === null) || (parseInt(bestScore) < currentPoints)) {
+			bestScore = currentPoints;
+			try {
+				bestScoreStorage.setItem("best-score", bestScore + "");
+			} catch (e) {
+				alert("Could not save best score: " + e);
+			}
+			document.getElementById("game-over-high-score-banner").style
+				.display = "block";
+		}
+	}
+	document.getElementById("game-over-best-score").textContent = bestScore;
 }
 
 function updatePoints() {
@@ -574,7 +603,7 @@ function draw() {
 			if (animationRunning) {
 				return;
 			}
-			if (currentSum == 0) {
+			if (currentSum != 0) {
 				updatePoints();
 				vanishFrame();
 			} else {
@@ -590,9 +619,11 @@ function draw() {
 		startGame);
 	document.getElementById("play-again-btn").addEventListener('click',
 		function() {
-			// Reset grid before restarting.
-			grid.init();
-			grid.render(ctx);
-			startGame();
+			if (!animationRunning) {
+				// Reset grid before restarting.
+				grid.init();
+				grid.render(ctx);
+				startGame();
+			}
 		});
 }

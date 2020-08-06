@@ -60,10 +60,18 @@ body {
 	text-align: center;
 	margin-top: 20%;
 }
+#game-over-high-score-banner {
+	text-align: center;
+	display: none;
+	color: #e55934;
+}
 #game-over-table {
 	color: #555555;
 	text-align: left;
 	margin: 0px auto;
+}
+#game-over-table td {
+	padding: 10px;
 }
 .overlay-btn {
 	display: block;
