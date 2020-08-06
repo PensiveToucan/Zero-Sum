@@ -57,8 +57,6 @@ body {
 }
 #game-over-header {
 	color: #555555;
-	text-align: center;
-	margin-top: 20%;
 }
 #game-over-high-score-banner {
 	text-align: center;
@@ -81,8 +79,9 @@ body {
 .overlay-header {
 	color: #555555;
 	text-align: center;
-	margin-top: 20%;
+	margin-top: 15%;
 }
-#game-over-overlay {
-	display: none;
+#pause-game-btn {
+	display: block;
+	margin: 0px auto;
 }

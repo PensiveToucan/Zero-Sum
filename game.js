@@ -473,7 +473,6 @@ function fidgetFrame() {
 }
 
 function startTimer() {
-	timeLeft = 5;
 	document.getElementById("timer-value").textContent = timeLeft;
 	timerId = setInterval(function() {
 		if (timeLeft <= 0) {
@@ -487,16 +486,33 @@ function startTimer() {
 	}, 1000);
 }
 
+function pauseGame() {
+	enabled = false;
+	// Pause timer.
+	clearInterval(timerId);
+	// Show the pause overlay.
+	for (let elem of document.getElementsByClassName("overlay")) {
+		elem.style.display = "none";
+	}
+	document.getElementById("pause-overlay").style.display = "block";
+}
+
+function resumeGame() {
+	for (let elem of document.getElementsByClassName("overlay")) {
+		elem.style.display = "none";
+	}
+	startTimer();
+	enabled = true;
+}
+
 function startGame() {
 	currentPoints = 0;
 	updatePoints();
 	enabled = true;
-	// Hide all overlays and banners
+	// Hide all overlays
 	for (let elem of document.getElementsByClassName("overlay")) {
 		elem.style.display = "none";
 	}
-	document.getElementById("game-over-high-score-banner").style.display =
-		"none";
 	startTimer();
 }
 
@@ -521,6 +537,9 @@ function gameOver() {
 			}
 			document.getElementById("game-over-high-score-banner").style
 				.display = "block";
+		} else {
+			document.getElementById("game-over-high-score-banner").style
+				.display = "none";
 		}
 	}
 	document.getElementById("game-over-best-score").textContent = bestScore;
@@ -603,7 +622,7 @@ function draw() {
 			if (animationRunning) {
 				return;
 			}
-			if (currentSum != 0) {
+			if (currentSum == 0) {
 				updatePoints();
 				vanishFrame();
 			} else {
@@ -620,10 +639,23 @@ function draw() {
 	document.getElementById("play-again-btn").addEventListener('click',
 		function() {
 			if (!animationRunning) {
+				timeLeft = 10;
 				// Reset grid before restarting.
 				grid.init();
 				grid.render(ctx);
 				startGame();
 			}
 		});
+	document.getElementById("pause-game-btn").addEventListener('click',
+		pauseGame);
+	document.getElementById("resume-game-btn").addEventListener('click',
+		resumeGame);
+
+	timeLeft = 10;
+
+	// Hide all overlays except for the welcome overlay.
+	for (let elem of document.getElementsByClassName("overlay")) {
+		elem.style.display = "none";
+	}
+	document.getElementById("welcome-overlay").style.display = "block";
 }
