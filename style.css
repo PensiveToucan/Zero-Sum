@@ -48,7 +48,7 @@ body {
 }
 .overlay {
 	background: rgba(255, 255, 255, 0.9);
-	position: absolute;
+	position: fixed;
 	left: 0;
 	right: 0;
 	top: 0;
@@ -92,8 +92,11 @@ body {
 	display: block;
 	margin: 0px auto;
 }
-#github-logo {
+#github-logo-link {
 	width: 70px;
 	display: block;
 	margin: 0px auto 30px auto;
+}
+#github-logo {
+	width: 70px;
 }
