@@ -1,4 +1,5 @@
 /* TODO: Make everything IE compatible */
+// Default sizes. Will be updated dynamically in the |draw| method.
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
@@ -186,7 +187,7 @@ class TileGrid {
 
 	render(ctx) {
 		ctx.fillStyle = TILE_BG_COL;
-		ctx.fillRect(0, 0, 500, 500);
+		ctx.fillRect(0, 0, TILE_SIZE * GRID_SIZE, TILE_SIZE * GRID_SIZE);
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let row = 0; row < GRID_SIZE; row++) {
 				this.grid[col][row].render(ctx);
@@ -286,9 +287,12 @@ function vanishFrame() {
 		if (grid.grid[coord.col][coord.row].tileSize > 0) {
 			allVanishesDone = false;
 			grid.grid[coord.col][coord.row].showText = false;
-			// 10 is a divisor of the tile size so |tileSize| will evenly
-			// reach zero eventually.
-			grid.grid[coord.col][coord.row].tileSize -= 10;
+			// 10 may not be a divisor of the tile size.
+			if (grid.grid[coord.col][coord.row].tileSize < 10) {
+				grid.grid[coord.col][coord.row].tileSize = 0;
+			} else {
+				grid.grid[coord.col][coord.row].tileSize -= 10;
+			}
 		}
 	}
 	if (!allVanishesDone) {
@@ -354,11 +358,15 @@ function translateFrame() {
 		for (let row = 0; row < GRID_SIZE; row++) {
 			if (grid.grid[col][row].drop > 0) {
 				allTranslatesDone = false;
-				// 10 is always a divisor of the distance
-				// any tile needs to move so |drop| will
-				// evenly reach zero eventually.
-				grid.grid[col][row].drop -= 10;
-				grid.grid[col][row].cy += 10;
+				// 10 may not always be a divisor of the distance
+				// any tile needs to move.
+				if (grid.grid[col][row].drop > 10) {
+					grid.grid[col][row].drop -= 10;
+					grid.grid[col][row].cy += 10;
+				} else {
+					grid.grid[col][row].cy += grid.grid[col][row].drop;
+					grid.grid[col][row].drop = 0;
+				}
 			}
 		}
 	}
@@ -528,7 +536,8 @@ function gameOver() {
 	let bestScore = 0;
 	if (bestScoreStorage != null) {
 		bestScore = bestScoreStorage.getItem("best-score");
-		if ((bestScore === null) || (parseInt(bestScore) < currentPoints)) {
+		if ((bestScore === null && currentPoints > 0) ||
+			(bestScore !== null && parseInt(bestScore) < currentPoints)) {
 			bestScore = currentPoints;
 			try {
 				bestScoreStorage.setItem("best-score", bestScore + "");
@@ -551,6 +560,25 @@ function updatePoints() {
 }
 
 function draw() {
+
+	// Compute game width based on screen size.
+	// Source: https://stackoverflow.com/a/28241682.
+	var screenWidth = window.innerWidth ||
+		document.documentElement.clientWidth ||
+		document.body.clientWidth;
+
+	if (screenWidth > 500) {
+		TILE_SIZE = 100;
+	} else if (screenWidth > 100) {
+		TILE_SIZE = (screenWidth - 10) / GRID_SIZE;
+	} else {
+		TILE_SIZE = 50;
+	}
+	document.getElementById("canvas-container").style.width = TILE_SIZE *
+		GRID_SIZE + 'px';
+	document.getElementById("container").style.width = TILE_SIZE * GRID_SIZE +
+		'px';
+
 	let canvas = document.getElementById("tutorial");
 
 	// Handle retina displays with non-unit pixel ratios
@@ -566,7 +594,7 @@ function draw() {
 	let rect = canvas.getBoundingClientRect();
 
 	ctx.fillStyle = TILE_BG_COL;
-	ctx.fillRect(0, 0, 500, 500);
+	ctx.fillRect(0, 0, canvasDimCss, canvasDimCss);
 
 	grid = new TileGrid(0, 0);
 	grid.init();
