@@ -90,3 +90,8 @@ body {
 	display: block;
 	margin: 0px auto;
 }
+#github-logo {
+	width: 70px;
+	display: block;
+	margin: 0px auto 30px auto;
+}
