@@ -1,4 +1,3 @@
-/* TODO: Make everything IE compatible */
 // Default sizes. Will be updated dynamically in the |draw| method.
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
@@ -360,9 +359,9 @@ function translateFrame() {
 				allTranslatesDone = false;
 				// 10 may not always be a divisor of the distance
 				// any tile needs to move.
-				if (grid.grid[col][row].drop > 10) {
-					grid.grid[col][row].drop -= 10;
-					grid.grid[col][row].cy += 10;
+				if (grid.grid[col][row].drop > 25) {
+					grid.grid[col][row].drop -= 25;
+					grid.grid[col][row].cy += 25;
 				} else {
 					grid.grid[col][row].cy += grid.grid[col][row].drop;
 					grid.grid[col][row].drop = 0;
@@ -471,9 +470,9 @@ function fidgetFrame() {
 		return;
 	}
 	if (grid.fidgetToggle) {
-		grid.grid[coords.col][coords.row].cx += 3;
+		grid.grid[coords.col][coords.row].cx += 5;
 	} else {
-		grid.grid[coords.col][coords.row].cx -= 3;
+		grid.grid[coords.col][coords.row].cx -= 5;
 	}
 	grid.render(ctx);
 	grid.fidgetToggle = !grid.fidgetToggle;
@@ -483,13 +482,12 @@ function fidgetFrame() {
 function startTimer() {
 	document.getElementById("timer-value").textContent = timeLeft;
 	timerId = setInterval(function() {
+		timeLeft--;
+		document.getElementById("timer-value").textContent =
+			timeLeft;
 		if (timeLeft <= 0) {
 			clearInterval(timerId);
 			gameOver();
-		} else {
-			timeLeft--;
-			document.getElementById("timer-value").textContent =
-				timeLeft;
 		}
 	}, 1000);
 }
@@ -559,6 +557,57 @@ function updatePoints() {
 	document.getElementById("points-value").textContent = currentPoints;
 }
 
+// (x, y) are the click/touch coordinates w.r.t the canvas (and not w.r.t
+// the screen)
+function handlePathStart(x, y) {
+	if (!enabled) {
+		return;
+	}
+	if (!inPath) {
+		inPath = true;
+		if (animationRunning) {
+			return;
+		}
+		let coords = grid.getTileForPoint(x, y);
+		if (coords == null) {
+			return;
+		}
+		if (currentPath.length === 0 &&
+			grid.grid[coords.col][coords.row].getType() != "ADD") {
+			// Prevent arithmetic op tiles from being the first in the path.
+			grid.clearHighlights(ctx);
+			fidget(coords);
+		} else if (maybeAddToPath(coords)) {
+			grid.highlightTile(ctx, coords.col, coords.row);
+		}
+	}
+}
+
+// (x, y) are the click/touch coordinates w.r.t the canvas (and not w.r.t
+// the screen)
+function handlePathMove(x, y) {
+	if (!enabled) {
+		return;
+	}
+	if (inPath) {
+		if (animationRunning) {
+			return;
+		}
+		let coords = grid.getTileForPoint(x, y);
+		if (coords == null) {
+			return;
+		}
+		if (currentPath.length === 0 &&
+			grid.grid[coords.col][coords.row].getType() != "ADD") {
+			// Prevent arithmetic op tiles from being the first in the path.
+			grid.clearHighlights(ctx);
+			fidget(coords);
+		} else if (maybeAddToPath(coords)) {
+			grid.highlightTile(ctx, coords.col, coords.row);
+		}
+	}
+}
+
 function draw() {
 
 	// Compute game width based on screen size.
@@ -600,66 +649,44 @@ function draw() {
 	grid.init();
 	grid.render(ctx);
 
-	canvas.addEventListener('mousedown', function(e) {
-		if (!enabled) {
-			return;
-		}
-		if (!inPath) {
-			inPath = true;
-			if (animationRunning) {
-				return;
-			}
-			let coords = grid.getTileForPoint(e.clientX - rect.left, e
-				.clientY - rect.top);
-			if (currentPath.length === 0 &&
-				grid.grid[coords.col][coords.row].getType() != "ADD") {
-				// Prevent arithmetic op tiles from being the first in the path.
-				grid.clearHighlights(ctx);
-				fidget(coords);
-			} else if (maybeAddToPath(coords)) {
-				grid.highlightTile(ctx, coords.col, coords.row);
-			}
-		}
+	canvas.addEventListener("mousedown", function(e) {
+		return handlePathStart(e.clientX - rect.left, e.clientY - rect
+			.top);
 	});
-	canvas.addEventListener('mousemove', function(e) {
-		if (!enabled) {
-			return;
-		}
-		if (inPath) {
-			if (animationRunning) {
-				return;
-			}
-			let coords = grid.getTileForPoint(e.clientX - rect.left, e
-				.clientY - rect.top);
-			if (currentPath.length === 0 &&
-				grid.grid[coords.col][coords.row].getType() != "ADD") {
-				// Prevent arithmetic op tiles from being the first in the path.
-				grid.clearHighlights(ctx);
-				fidget(coords);
-			} else if (maybeAddToPath(coords)) {
-				grid.highlightTile(ctx, coords.col, coords.row);
-			}
-		}
+	canvas.addEventListener("touchstart", function(e) {
+		return handlePathStart(e.touches[0].clientX - rect.left, e
+			.touches[0].clientY - rect.top);
 	});
-	document.addEventListener('mouseup', function(e) {
-		if (!enabled) {
-			return;
-		}
-		if (inPath) {
-			inPath = false;
-			if (animationRunning) {
+	canvas.addEventListener("mousemove", function(e) {
+		return handlePathMove(e.clientX - rect.left, e.clientY - rect
+			.top);
+	});
+	canvas.addEventListener("touchmove", function(e) {
+		return handlePathMove(e.touches[0].clientX - rect.left, e
+			.touches[0].clientY - rect.top);
+	});
+
+	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
+		document.addEventListener(ev, function(e) {
+			if (!enabled) {
 				return;
 			}
-			if (currentSum == 0) {
-				updatePoints();
-				vanishFrame();
-			} else {
-				grid.clearHighlights(ctx);
-				currentPath = [];
-				currentSum = 0;
-				updateCurrentPathSumText();
+			if (inPath) {
+				inPath = false;
+				if (animationRunning) {
+					return;
+				}
+				if (currentSum == 0) {
+					updatePoints();
+					vanishFrame();
+				} else {
+					grid.clearHighlights(ctx);
+					currentPath = [];
+					currentSum = 0;
+					updateCurrentPathSumText();
+				}
 			}
-		}
+		});
 	});
 
 	document.getElementById("start-game-btn").addEventListener('click',
@@ -667,7 +694,7 @@ function draw() {
 	document.getElementById("play-again-btn").addEventListener('click',
 		function() {
 			if (!animationRunning) {
-				timeLeft = 10;
+				timeLeft = 60;
 				// Reset grid before restarting.
 				grid.init();
 				grid.render(ctx);
@@ -679,7 +706,7 @@ function draw() {
 	document.getElementById("resume-game-btn").addEventListener('click',
 		resumeGame);
 
-	timeLeft = 10;
+	timeLeft = 60;
 
 	// Hide all overlays except for the welcome overlay.
 	for (let elem of document.getElementsByClassName("overlay")) {
