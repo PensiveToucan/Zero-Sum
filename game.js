@@ -705,6 +705,28 @@ function draw() {
 		pauseGame);
 	document.getElementById("resume-game-btn").addEventListener('click',
 		resumeGame);
+	for (let elem of document.getElementsByClassName("quit-game-btn")) {
+		elem.addEventListener('click', function() {
+			enabled = false;
+			if (!animationRunning) {
+				// Reset timer, path, points
+				timeLeft = 60;
+				document.getElementById("timer-value").textContent = timeLeft;
+				grid.init();
+				grid.render(ctx);
+				currentPath = [];
+				currentPoints = 0;
+				currentSum = 0;
+				updateCurrentPathSumText();
+				updatePoints();
+				// Show the welcome overlay
+				for (let elem of document.getElementsByClassName("overlay")) {
+					elem.style.display = "none";
+				}
+				document.getElementById("welcome-overlay").style.display = "block";
+			}
+		});
+	}
 
 	timeLeft = 60;
 

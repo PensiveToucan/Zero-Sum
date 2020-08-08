@@ -2,6 +2,12 @@ body {
 	font-family: sans-serif;
 	padding: 0;
 	margin: 0;
+	/*
+		To prevent chrome's pull refresh
+		https://stackoverflow.com/q/29008194
+	*/
+	overscroll-behavior: contain;
+	overflow-y: hidden;
 }
 #container {
 	display: table;
@@ -75,7 +81,7 @@ body {
 }
 .overlay-btn {
 	display: block;
-	margin: 20px auto;
+	margin: 0px auto;
 	padding: 5px 10px;
 }
 .overlay-header {
@@ -91,6 +97,7 @@ body {
 #pause-game-btn {
 	display: block;
 	margin: 0px auto;
+	padding: 5px 10px;
 }
 #github-logo-link {
 	width: 70px;
@@ -99,4 +106,12 @@ body {
 }
 #github-logo {
 	width: 70px;
+}
+.overlay-btn-table {
+	display: table;
+	margin: 20px auto 0 auto;
+	border-spacing: 10px;
+}
+.overlay-btn-table .overlay-btn {
+	width: 100%;
 }

@@ -43,7 +43,10 @@
 		</div>
 		<div class="overlay" id="pause-overlay">
 			<h2 id="pause-header" class="overlay-header">Pause</h2>
-			<button class="overlay-btn" id="resume-game-btn">Resume</button>
+			<table class="overlay-btn-table">
+				<tr><td><button class="overlay-btn" id="resume-game-btn">Resume</button></td></tr>
+				<tr><td><button class="overlay-btn quit-game-btn">Quit</button></td></tr>
+			</table>
 		</div>
 		<div class="overlay" id="game-over-overlay">
 			<h2 id="game-over-header" class="overlay-header">Game Over</h2>
@@ -51,14 +54,17 @@
 			<table id="game-over-table">
 				<tr>
 					<td class="label">Score:</td>
-					<td id="game-over-score">123</td>
+					<td id="game-over-score"></td>
 				</tr>
 				<tr>
 					<td class="label">Best:</td>
-					<td id="game-over-best-score">123</td>
+					<td id="game-over-best-score"></td>
 				</tr>
 			</table>
-			<button id="play-again-btn" class="overlay-btn">Play again</button>
+			<table class="overlay-btn-table">
+				<tr><td><button class="overlay-btn" id="play-again-btn">Play again</button></td></tr>
+				<tr><td><button class="overlay-btn quit-game-btn">Quit</button></td></tr>
+			</table>
 		</div>
 	</div>
 </body>
