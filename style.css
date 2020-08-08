@@ -11,7 +11,7 @@ body {
 }
 #container {
 	display: table;
-	margin: 50px auto 0 auto;
+	margin: 40px auto 0 auto;
 }
 #status-bar {
 	display: inline-block;
@@ -23,6 +23,7 @@ body {
 .status-block {
 	width: 100px;
 	text-align: center;
+	padding: 5px 0;
 }
 #timer-view {
 	float: left;
@@ -114,4 +115,9 @@ body {
 }
 .overlay-btn-table .overlay-btn {
 	width: 100%;
+}
+.timer-warning {
+	font-weight: bold !important;
+	color: #fefefe !important;
+	background-color: #c14955 !important;
 }

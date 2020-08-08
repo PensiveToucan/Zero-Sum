@@ -34,6 +34,9 @@ var timeLeft = 0;
 var timerId;
 var currentPoints = 0;
 
+const TIME_LIMIT_SEC = 60;
+const TIME_WARNING_THRESHOLD = 10;
+
 // Save best score
 try {
 	var bestScoreStorage = window.localStorage;
@@ -489,6 +492,12 @@ function startTimer() {
 			clearInterval(timerId);
 			gameOver();
 		}
+		if (timeLeft === TIME_WARNING_THRESHOLD) {
+			// Alert the player that time's almost up
+			document.getElementById("timer-view").classList.add("timer-warning");
+			document.getElementById("timer-label").classList.add("timer-warning");
+			document.getElementById("timer-value").classList.add("timer-warning");
+		}
 	}, 1000);
 }
 
@@ -519,6 +528,9 @@ function startGame() {
 	for (let elem of document.getElementsByClassName("overlay")) {
 		elem.style.display = "none";
 	}
+	document.getElementById("timer-view").classList.remove("timer-warning");
+	document.getElementById("timer-label").classList.remove("timer-warning");
+	document.getElementById("timer-value").classList.remove("timer-warning");
 	startTimer();
 }
 
@@ -694,7 +706,7 @@ function draw() {
 	document.getElementById("play-again-btn").addEventListener('click',
 		function() {
 			if (!animationRunning) {
-				timeLeft = 60;
+				timeLeft = TIME_LIMIT_SEC;
 				// Reset grid before restarting.
 				grid.init();
 				grid.render(ctx);
@@ -710,7 +722,10 @@ function draw() {
 			enabled = false;
 			if (!animationRunning) {
 				// Reset timer, path, points
-				timeLeft = 60;
+				timeLeft = TIME_LIMIT_SEC;
+				document.getElementById("timer-view").classList.remove("timer-warning");
+				document.getElementById("timer-label").classList.remove("timer-warning");
+				document.getElementById("timer-value").classList.remove("timer-warning");
 				document.getElementById("timer-value").textContent = timeLeft;
 				grid.init();
 				grid.render(ctx);
@@ -728,7 +743,7 @@ function draw() {
 		});
 	}
 
-	timeLeft = 60;
+	timeLeft = TIME_LIMIT_SEC;
 
 	// Hide all overlays except for the welcome overlay.
 	for (let elem of document.getElementsByClassName("overlay")) {
