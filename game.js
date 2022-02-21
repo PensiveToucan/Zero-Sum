@@ -620,6 +620,75 @@ function handlePathMove(x, y) {
 	}
 }
 
+function addListenersForDragBasedHighlighting(rect, canvas, document) {
+	canvas.addEventListener("mousedown", function(e) {
+		return handlePathStart(e.clientX - rect.left, e.clientY - rect
+			.top);
+	});
+	canvas.addEventListener("touchstart", function(e) {
+		return handlePathStart(e.touches[0].clientX - rect.left, e
+			.touches[0].clientY - rect.top);
+	});
+	canvas.addEventListener("mousemove", function(e) {
+		return handlePathMove(e.clientX - rect.left, e.clientY - rect
+			.top);
+	});
+	canvas.addEventListener("touchmove", function(e) {
+		return handlePathMove(e.touches[0].clientX - rect.left, e
+			.touches[0].clientY - rect.top);
+	});
+
+	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
+		document.addEventListener(ev, function(e) {
+			if (!enabled) {
+				return;
+			}
+			if (inPath) {
+				inPath = false;
+				if (animationRunning) {
+					return;
+				}
+				if (currentSum == 0) {
+					updatePoints();
+					vanishFrame();
+				} else {
+					grid.clearHighlights(ctx);
+					currentPath = [];
+					currentSum = 0;
+					updateCurrentPathSumText();
+				}
+			}
+		});
+	});
+}
+
+function addListenersForClickBasedHighlighting(rect, canvas, document) {
+	canvas.addEventListener("mousedown", function(e) {
+		if (!inPath) {
+			handlePathStart(e.clientX - rect.left, e.clientY - rect
+				.top);
+			inPath = true;
+		} else {
+			handlePathMove(e.clientX - rect.left, e.clientY - rect
+				.top);
+		}
+		if (currentSum == 0) {
+			inPath = false;
+			updatePoints();
+			vanishFrame();
+		}
+	});
+	document.addEventListener("mousedown", function(e) {
+		if (!canvas.contains(e.target)) {
+			inPath = false;
+			grid.clearHighlights(ctx);
+			currentPath = [];
+			currentSum = 0;
+			updateCurrentPathSumText();
+		}
+	});
+}
+
 function draw() {
 
 	// Compute game width based on screen size.
@@ -661,45 +730,8 @@ function draw() {
 	grid.init();
 	grid.render(ctx);
 
-	canvas.addEventListener("mousedown", function(e) {
-		return handlePathStart(e.clientX - rect.left, e.clientY - rect
-			.top);
-	});
-	canvas.addEventListener("touchstart", function(e) {
-		return handlePathStart(e.touches[0].clientX - rect.left, e
-			.touches[0].clientY - rect.top);
-	});
-	canvas.addEventListener("mousemove", function(e) {
-		return handlePathMove(e.clientX - rect.left, e.clientY - rect
-			.top);
-	});
-	canvas.addEventListener("touchmove", function(e) {
-		return handlePathMove(e.touches[0].clientX - rect.left, e
-			.touches[0].clientY - rect.top);
-	});
-
-	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
-		document.addEventListener(ev, function(e) {
-			if (!enabled) {
-				return;
-			}
-			if (inPath) {
-				inPath = false;
-				if (animationRunning) {
-					return;
-				}
-				if (currentSum == 0) {
-					updatePoints();
-					vanishFrame();
-				} else {
-					grid.clearHighlights(ctx);
-					currentPath = [];
-					currentSum = 0;
-					updateCurrentPathSumText();
-				}
-			}
-		});
-	});
+	addListenersForDragBasedHighlighting(rect, canvas, document);
+	// addListenersForClickBasedHighlighting(rect, canvas, document);
 
 	document.getElementById("start-game-btn").addEventListener('click',
 		startGame);
