@@ -747,8 +747,9 @@ function draw() {
 		});
 	document.getElementById("pause-game-btn").addEventListener('click',
 		pauseGame);
-	document.getElementById("resume-game-btn").addEventListener('click',
-		resumeGame);
+	for (let elem of document.getElementsByClassName("resume-game-btn")) {
+		elem.addEventListener('click', resumeGame);
+	}
 	for (let elem of document.getElementsByClassName("quit-game-btn")) {
 		elem.addEventListener('click', function() {
 			enabled = false;

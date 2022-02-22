@@ -10,6 +10,9 @@
 </head>
 
 <body onload="draw()">
+	<div id="header">
+		<div id="header-title">Zero Sum</div>
+	</div>
 	<div id="container">
 		<div id="status-bar">
 			<div id="timer-view" class="status-block">
@@ -30,7 +33,7 @@
 			<button id="pause-game-btn">Pause</button>
 		</div>
 		<div class="overlay" id="welcome-overlay">
-			<h1 class="overlay-header">Zero Sum</h1>
+			<div id="welcome-header" class="overlay-header">Zero Sum</div>
 			<div class="overlay-sub-header">
 				<p>Highlight sequences of numbers that sum to zero.</p>
 				<p>The longer the sequence, the more points it's worth.</p>
@@ -42,9 +45,9 @@
 			<button class="overlay-btn" id="start-game-btn">Play</button>
 		</div>
 		<div class="overlay" id="pause-overlay">
-			<h2 id="pause-header" class="overlay-header">Pause</h2>
+			<div id="pause-header" class="overlay-header">Pause</div>
 			<table class="overlay-btn-table">
-				<tr><td><button class="overlay-btn" id="resume-game-btn">Resume</button></td></tr>
+				<tr><td><button class="overlay-btn resume-game-btn">Resume</button></td></tr>
 				<tr><td><button class="overlay-btn quit-game-btn">Quit</button></td></tr>
 			</table>
 		</div>
