@@ -775,6 +775,16 @@ function draw() {
 			}
 		});
 	}
+	document.getElementById("settings-btn").addEventListener('click',
+		function() {
+			// Show only the settings overlay.
+			document.getElementById("settings-overlay").style.display = "block";
+		});
+	document.getElementById("close-settings-btn").addEventListener('click',
+		function() {
+			// Close only the settings overlay.
+			document.getElementById("settings-overlay").style.display = "none";
+		});
 
 	timeLeft = TIME_LIMIT_SEC;
 
