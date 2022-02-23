@@ -37,7 +37,6 @@
 			<div class="overlay-content">
 				<p>Highlight sequences of numbers that sum to zero. The longer the sequence, the more points it's worth. Get as many points as you can in 60 seconds. </p>
 				<p>A new tile can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted tile.</p>
-				<p>When you highlight an arithmetic symbol, it will operate on the sum of the highlighted tiles up until that point.</p>
 			</div>
 			<div class="overlay-content" id="zero-sum-example"><img src="zero_sum_example.png" /></div>
 			<button class="overlay-btn" id="start-game-btn">Play</button>
@@ -69,6 +68,18 @@
 					<div for="gesture" class="radio-label">
 						Use gestures for highlighting tiles
 						<div class="radio-sublabel">Click and drag your mouse over a tile to highlight it.</div>
+					</div>
+					</label>
+				</div>
+			</div>
+			<div class="overlay-content">
+				<div class="settings-section-title">Arithmetic Tiles</div>
+				<div>
+					<label>
+					<input type="checkbox" id="settings-arithmetic-tiles" name="settings-arithmetic-tiles" value="click" checked>
+					<div for="settings-arithmetic-tiles" class="radio-label">
+						Enable arithmetic tiles
+						<div class="radio-sublabel">When an arithmetic tile is highlighted, it will operate on the current sum.</div>
 					</div>
 					</label>
 				</div>

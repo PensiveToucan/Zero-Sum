@@ -36,6 +36,7 @@ var currentPoints = 0;
 
 // User setting
 var use_click_highlighting = true;
+var enable_arithmetic_tiles = false;
 
 const TIME_LIMIT_SEC = 60;
 const TIME_WARNING_THRESHOLD = 10;
@@ -417,19 +418,19 @@ function generateTile(cx, cy) {
 	}
 
 	let r = Math.random();
-	if (r > 0.9) {
+	if (enable_arithmetic_tiles && r > 0.9) {
 		// 2 MULTIPLIER
 		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
 			lastGen.MULTIPLIER = tick;
 			return new MultiplierTile(cx, cy, 2);
 		}
-	} else if (r > 0.8) {
+	} else if (enable_arithmetic_tiles && r > 0.8) {
 		// -1 MULTIPLIER
 		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
 			lastGen.MULTIPLIER = tick;
 			return new MultiplierTile(cx, cy, -1);
 		}
-	} else if (r > 0.7) {
+	} else if (enable_arithmetic_tiles && r > 0.7) {
 		// SQUARE
 		if ((tick - lastGen.SQUARE > 10) && numSquare < 1) {
 			lastGen.SQUARE = tick;
@@ -812,6 +813,11 @@ function draw() {
 			} else {
 				document.getElementById("settings-gesture").checked = true;
 			}
+			if (enable_arithmetic_tiles) {
+				document.getElementById("settings-arithmetic-tiles").checked = true;
+			} else {
+				document.getElementById("settings-arithmetic-tiles").checked = false;
+			}
 		});
 	document.getElementById("close-settings-btn").addEventListener('click',
 		function() {
@@ -827,6 +833,13 @@ function draw() {
 			}
 		});
 	}
+	document.getElementById("settings-arithmetic-tiles").addEventListener("click", function(e) {
+		if (this.checked) {
+			enable_arithmetic_tiles = true;
+		} else {
+			enable_arithmetic_tiles = false;
+		}
+	});
 
 	timeLeft = TIME_LIMIT_SEC;
 
