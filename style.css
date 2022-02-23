@@ -88,13 +88,25 @@ body {
 .overlay-header {
 	color: #555555;
 	text-align: center;
-	margin-top: 15%;
+	margin-top: 5%;
 	font-size: 25px;
 }
-.overlay-sub-header {
-	color: #666666;
-	text-align: center;
+.overlay-content {
+	color: #555555;
 	padding: 5px;
+	margin: 0px auto;
+	max-width: 500px;
+	border-bottom: 2px solid #f3f3f3;
+	font-size: 15px;
+}
+#zero-sum-example {
+	text-align: center;
+}
+#zero-sum-example img {
+	width: 350px;
+}
+#start-game-btn {
+	margin-top: 10px;
 }
 #pause-game-btn {
 	display: block;
@@ -136,5 +148,5 @@ body {
 	color: #555555;
 }
 #welcome-header {
-	font-size: 55px;
+	font-size: 45px;
 }
