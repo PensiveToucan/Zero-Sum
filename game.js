@@ -34,6 +34,9 @@ var timeLeft = 0;
 var timerId;
 var currentPoints = 0;
 
+// User setting
+var use_click_highlighting = true;
+
 const TIME_LIMIT_SEC = 60;
 const TIME_WARNING_THRESHOLD = 10;
 
@@ -622,24 +625,39 @@ function handlePathMove(x, y) {
 
 function addListenersForDragBasedHighlighting(rect, canvas, document) {
 	canvas.addEventListener("mousedown", function(e) {
+		if (use_click_highlighting) {
+			return;
+		}
 		return handlePathStart(e.clientX - rect.left, e.clientY - rect
 			.top);
 	});
 	canvas.addEventListener("touchstart", function(e) {
+		if (use_click_highlighting) {
+			return;
+		}
 		return handlePathStart(e.touches[0].clientX - rect.left, e
 			.touches[0].clientY - rect.top);
 	});
 	canvas.addEventListener("mousemove", function(e) {
+		if (use_click_highlighting) {
+			return;
+		}
 		return handlePathMove(e.clientX - rect.left, e.clientY - rect
 			.top);
 	});
 	canvas.addEventListener("touchmove", function(e) {
+		if (use_click_highlighting) {
+			return;
+		}
 		return handlePathMove(e.touches[0].clientX - rect.left, e
 			.touches[0].clientY - rect.top);
 	});
 
 	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
 		document.addEventListener(ev, function(e) {
+			if (use_click_highlighting) {
+				return;
+			}
 			if (!enabled) {
 				return;
 			}
@@ -664,6 +682,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 
 function addListenersForClickBasedHighlighting(rect, canvas, document) {
 	canvas.addEventListener("mousedown", function(e) {
+		if (!use_click_highlighting) {
+			return;
+		}
 		if (!inPath) {
 			handlePathStart(e.clientX - rect.left, e.clientY - rect
 				.top);
@@ -679,6 +700,9 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		}
 	});
 	document.addEventListener("mousedown", function(e) {
+		if (!use_click_highlighting) {
+			return;
+		}
 		if (!canvas.contains(e.target)) {
 			inPath = false;
 			grid.clearHighlights(ctx);
@@ -730,8 +754,10 @@ function draw() {
 	grid.init();
 	grid.render(ctx);
 
+	// Add listeners for both. Only one will work based on the use_click_highlighting
+	// user setting variable.
 	addListenersForDragBasedHighlighting(rect, canvas, document);
-	// addListenersForClickBasedHighlighting(rect, canvas, document);
+	addListenersForClickBasedHighlighting(rect, canvas, document);
 
 	document.getElementById("start-game-btn").addEventListener('click',
 		startGame);
@@ -779,12 +805,28 @@ function draw() {
 		function() {
 			// Show only the settings overlay.
 			document.getElementById("settings-overlay").style.display = "block";
+
+			// Update the UI based on the setting variable we have.
+			if (use_click_highlighting) {
+				document.getElementById("settings-click").checked = true;
+			} else {
+				document.getElementById("settings-gesture").checked = true;
+			}
 		});
 	document.getElementById("close-settings-btn").addEventListener('click',
 		function() {
 			// Close only the settings overlay.
 			document.getElementById("settings-overlay").style.display = "none";
 		});
+	for (let elem of document.getElementsByName("settings-highlight-method")) {
+		elem.addEventListener("click", function(e) {
+			if  (this.value == "click") {
+				use_click_highlighting = true;
+			} else if (this.value == "gesture") {
+				use_click_highlighting = false;
+			}
+		});
+	}
 
 	timeLeft = TIME_LIMIT_SEC;
 

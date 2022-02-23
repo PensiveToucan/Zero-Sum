@@ -52,6 +52,27 @@
 		</div>
 		<div class="overlay" id="settings-overlay">
 			<div id="pause-header" class="overlay-header">Settings</div>
+			<div class="overlay-content">
+				<div class="settings-section-title">Tile highlighting</div>
+				<div>
+					<label>
+					<input type="radio" id="settings-click" name="settings-highlight-method" value="click" checked>
+					<div for="click" class="radio-label">
+						Use clicks for highlighting tiles
+						<div class="radio-sublabel">Click each individual tile to highlight it.</div>
+					</div>
+					</label>
+				</div>
+				<div>
+					<label>
+					<input type="radio" id="settings-gesture" name="settings-highlight-method" value="gesture">
+					<div for="gesture" class="radio-label">
+						Use gestures for highlighting tiles
+						<div class="radio-sublabel">Click and drag your mouse over a tile to highlight it.</div>
+					</div>
+					</label>
+				</div>
+			</div>
 			<table class="overlay-btn-table">
 				<tr><td><button class="overlay-btn" id="close-settings-btn">X</button></td></tr>
 			</table>
