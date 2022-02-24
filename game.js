@@ -823,23 +823,23 @@ function draw() {
 		function() {
 			// Close only the settings overlay.
 			document.getElementById("settings-overlay").style.display = "none";
-		});
-	for (let elem of document.getElementsByName("settings-highlight-method")) {
-		elem.addEventListener("click", function(e) {
-			if  (this.value == "click") {
-				use_click_highlighting = true;
-			} else if (this.value == "gesture") {
-				use_click_highlighting = false;
+
+			// Save the settings.
+			for (let elem of document.getElementsByName("settings-highlight-method")) {
+				if (elem.checked) {
+					if (elem.value == "click") {
+						use_click_highlighting = true;
+					} else if (elem.value == "gesture") {
+						use_click_highlighting = false;
+					}
+				}
+			}
+			if (document.getElementById("settings-arithmetic-tiles").checked) {
+				enable_arithmetic_tiles = true;
+			} else {
+				enable_arithmetic_tiles = false;
 			}
 		});
-	}
-	document.getElementById("settings-arithmetic-tiles").addEventListener("click", function(e) {
-		if (this.checked) {
-			enable_arithmetic_tiles = true;
-		} else {
-			enable_arithmetic_tiles = false;
-		}
-	});
 
 	timeLeft = TIME_LIMIT_SEC;
 

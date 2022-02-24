@@ -1,6 +1,6 @@
 body {
 	font-family: sans-serif;
-	padding: 0;
+	padding: 5px;
 	margin: 0;
 	/*
 		To prevent chrome's pull refresh
@@ -82,8 +82,9 @@ body {
 }
 .overlay-btn {
 	display: block;
-	margin: 0px auto;
+	margin: 10px auto;
 	padding: 5px 10px;
+	width: 100px;
 }
 .overlay-header {
 	color: #555555;
@@ -94,19 +95,12 @@ body {
 .overlay-content {
 	color: #555555;
 	padding: 5px;
-	margin: 0px auto;
+	margin: 10px auto 0 auto;
 	max-width: 500px;
-	border-bottom: 2px solid #f3f3f3;
-	font-size: 15px;
+	font-size: 14px;
 }
 #zero-sum-example {
 	text-align: center;
-}
-#zero-sum-example img {
-	width: 350px;
-}
-#start-game-btn {
-	margin-top: 10px;
 }
 #pause-game-btn {
 	display: block;
@@ -148,7 +142,7 @@ body {
 	color: #555555;
 }
 #welcome-header {
-	font-size: 45px;
+	font-size: 30px;
 }
 input[type='radio'] {
 	vertical-align: middle;
@@ -167,4 +161,10 @@ input[type='radio'] {
 .settings-section-title {
 	font-size: 16px;
 	margin-top: 10px;
+}
+#example-img {
+	width: 300px;
+}
+.example-img-div {
+	text-align: center;
 }

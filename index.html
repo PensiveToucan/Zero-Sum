@@ -35,19 +35,20 @@
 		<div class="overlay" id="welcome-overlay">
 			<div id="welcome-header" class="overlay-header">Zero Sum</div>
 			<div class="overlay-content">
-				<p>Highlight sequences of numbers that sum to zero. The longer the sequence, the more points it's worth. Get as many points as you can in 60 seconds. </p>
-				<p>A new tile can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted tile.</p>
+				Highlight sequences of numbers that sum to zero. The longer the sequence, the more points it's worth. Get as many points as you can in 60 seconds.<p></p>
+				Click a number to highlight it. Click outside the number grid to clear all highlights.<p></p>
+				A number can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted number.
 			</div>
-			<div class="overlay-content" id="zero-sum-example"><img src="zero_sum_example.png" /></div>
-			<button class="overlay-btn" id="start-game-btn">Play</button>
-			<button class="overlay-btn" id="settings-btn">Settings</button>
+			<div class="example-img-div">
+				<img id="example-img" src="zero_sum_example.png" />
+			</div>
+			<button class="overlay-btn welcome-overlay-btn" id="start-game-btn">Play</button>
+			<button class="overlay-btn welcome-overlay-btn" id="settings-btn">Settings</button>
 		</div>
 		<div class="overlay" id="pause-overlay">
 			<div id="pause-header" class="overlay-header">Pause</div>
-			<table class="overlay-btn-table">
-				<tr><td><button class="overlay-btn resume-game-btn">Resume</button></td></tr>
-				<tr><td><button class="overlay-btn quit-game-btn">Quit</button></td></tr>
-			</table>
+			<button class="overlay-btn resume-game-btn">Resume</button>
+			<button class="overlay-btn quit-game-btn">Quit</button>
 		</div>
 		<div class="overlay" id="settings-overlay">
 			<div id="pause-header" class="overlay-header">Settings</div>
@@ -84,9 +85,7 @@
 					</label>
 				</div>
 			</div>
-			<table class="overlay-btn-table">
-				<tr><td><button class="overlay-btn" id="close-settings-btn">X</button></td></tr>
-			</table>
+			<button class="overlay-btn" id="close-settings-btn">Save</button>
 		</div>
 		<div class="overlay" id="game-over-overlay">
 			<h2 id="game-over-header" class="overlay-header">Game Over</h2>
@@ -101,10 +100,8 @@
 					<td id="game-over-best-score"></td>
 				</tr>
 			</table>
-			<table class="overlay-btn-table">
-				<tr><td><button class="overlay-btn" id="play-again-btn">Play again</button></td></tr>
-				<tr><td><button class="overlay-btn quit-game-btn">Quit</button></td></tr>
-			</table>
+			<button class="overlay-btn" id="play-again-btn">Play again</button>
+			<button class="overlay-btn quit-game-btn">Quit</button>
 		</div>
 	</div>
 </body>
