@@ -13,8 +13,9 @@ body {
 	/*
 		Meant to remove mobile browser delay
 		in firing touch events.
+		Also seems to prevent pull refresh in IOS safari
 	*/
-	touch-action: manipulation;
+	touch-action: none;
 }
 #container {
 	display: table;
@@ -67,6 +68,7 @@ body {
 	right: 0;
 	top: 0;
 	bottom: 0;
+	padding: 15px;
 }
 #canvas-container {
 	position: relative;
@@ -154,14 +156,11 @@ body {
 input[type='radio'] {
 	vertical-align: middle;
 }
-.radio-label {
-	vertical-align: middle;
-	display: inline-block;
+.settings-label {
 	cursor: pointer;
-	padding: 10px 5px;
-	max-width: 350px;
+	padding: 5px;
 }
-.radio-sublabel {
+.settings-sublabel {
 	font-size: 13px;
 	color: #919191;
 }

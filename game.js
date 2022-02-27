@@ -1,4 +1,5 @@
 // Default sizes. Will be updated dynamically in the |draw| method.
+// All sizes are in pixels by default.
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
@@ -7,6 +8,8 @@ var TILE_HIGHLIGHT_COL = '#e7e7e7';
 var TILE_TEXT_COL = '#666666';
 var MULTIPLIER_TILE_BG_COL = "#e07a5f";
 var SQUARE_TILE_BG_COL = "#be6f7f";
+var GRID_X_PADDING = 20;	// 20px padding on each side of grid
+var TILE_TEXT_SIZE = 20;	// 20px font size
 
 var inPath = false;
 var currentPath = [];
@@ -40,6 +43,8 @@ var enable_arithmetic_tiles = false;
 
 const TIME_LIMIT_SEC = 60;
 const TIME_WARNING_THRESHOLD = 10;
+const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
+const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
 
 // Save best score
 try {
@@ -74,7 +79,7 @@ class Tile {
 		if (this.showText) {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
-			ctx.font = '20px sans-serif';
+			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
 			ctx.fillStyle = TILE_TEXT_COL;
 			ctx.fillText(this.val, this.cx, this.cy);
 		}
@@ -112,7 +117,7 @@ class MultiplierTile {
 		if (this.showText) {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
-			ctx.font = '20px sans-serif';
+			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
 			ctx.fillStyle = TILE_BG_COL;
 			if (this.multiplier === -1) {
 				ctx.fillText("-x", this.cx, this.cy);
@@ -153,7 +158,7 @@ class SquareTile {
 		if (this.showText) {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
-			ctx.font = '20px sans-serif';
+			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
 			ctx.fillStyle = TILE_BG_COL;
 			ctx.fillText("x²", this.cx, this.cy);
 		}
@@ -293,11 +298,11 @@ function vanishFrame() {
 		if (grid.grid[coord.col][coord.row].tileSize > 0) {
 			allVanishesDone = false;
 			grid.grid[coord.col][coord.row].showText = false;
-			// 10 may not be a divisor of the tile size.
-			if (grid.grid[coord.col][coord.row].tileSize < 10) {
+			// TILE_VANISH_RATE may not be a divisor of the tile size.
+			if (grid.grid[coord.col][coord.row].tileSize < TILE_VANISH_RATE) {
 				grid.grid[coord.col][coord.row].tileSize = 0;
 			} else {
-				grid.grid[coord.col][coord.row].tileSize -= 10;
+				grid.grid[coord.col][coord.row].tileSize -= TILE_VANISH_RATE;
 			}
 		}
 	}
@@ -364,11 +369,11 @@ function translateFrame() {
 		for (let row = 0; row < GRID_SIZE; row++) {
 			if (grid.grid[col][row].drop > 0) {
 				allTranslatesDone = false;
-				// 10 may not always be a divisor of the distance
+				// TILE_DROP_RATE may not always be a divisor of the distance
 				// any tile needs to move.
-				if (grid.grid[col][row].drop > 25) {
-					grid.grid[col][row].drop -= 25;
-					grid.grid[col][row].cy += 25;
+				if (grid.grid[col][row].drop > TILE_DROP_RATE) {
+					grid.grid[col][row].drop -= TILE_DROP_RATE;
+					grid.grid[col][row].cy += TILE_DROP_RATE;
 				} else {
 					grid.grid[col][row].cy += grid.grid[col][row].drop;
 					grid.grid[col][row].drop = 0;
@@ -725,7 +730,7 @@ function draw() {
 	if (screenWidth > 500) {
 		TILE_SIZE = 100;
 	} else if (screenWidth > 100) {
-		TILE_SIZE = (screenWidth - 10) / GRID_SIZE;
+		TILE_SIZE = (screenWidth - 2 * GRID_X_PADDING) / GRID_SIZE;
 	} else {
 		TILE_SIZE = 50;
 	}
