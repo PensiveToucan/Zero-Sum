@@ -6,6 +6,7 @@ var GRID_SIZE = 5;
 var grid;
 var pathManager;
 var ctx;
+var storageManager;
 
 // "Tile time" is measured in ticks. Each tick happens when a new tile is
 // generated. I've set a minimum tick interval for each arithmetic op tile
@@ -44,12 +45,40 @@ const SQUARE_TILE_BG_COL = "#be6f7f";
 const GRID_X_PADDING = 20;	// 20px padding on each side of grid
 const TILE_TEXT_SIZE = 20;	// 20px font size
 
-// Save best score
-try {
-	var bestScoreStorage = window.localStorage;
-} catch (e) {
-	var bestScoreStorage = null;
-	alert("Could not access local storage. Will not save best score.");
+class StorageManager {
+	constructor() {
+		try {
+			this.bestScoreStorage = window.localStorage;
+		} catch (e) {
+			this.bestScoreStorage = null;
+			console.log("Could not access local storage. Error = " + e);
+		}
+	}
+
+	maybeUpdateBestScore(s) {
+		if (this.bestScoreStorage == null) {
+			return true;
+		}
+
+		let bestScore = this.bestScoreStorage.getItem("best-score");
+		if ((bestScore === null && s > 0) || (bestScore !== null && parseInt(bestScore) < s)) {
+			try {
+				this.bestScoreStorage.setItem("best-score", s + "");
+			} catch (e) {
+				console.log("Could not save new best score. Error = " + e);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	getBestScore() {
+		if (this.bestScoreStorage == null) {
+			return 0;
+		}
+		let bestScore = this.bestScoreStorage.getItem("best-score");
+		return bestScore === null ? 0 : parseInt(bestScore);
+	}
 }
 
 // Manages current path state and path sum. Does not deal with UI.
@@ -582,25 +611,13 @@ function gameOver() {
 	enabled = false;
 	document.getElementById("game-over-overlay").style.display = "block";
 	document.getElementById("game-over-score").textContent = currentPoints;
-	let bestScore = 0;
-	if (bestScoreStorage != null) {
-		bestScore = bestScoreStorage.getItem("best-score");
-		if ((bestScore === null && currentPoints > 0) ||
-			(bestScore !== null && parseInt(bestScore) < currentPoints)) {
-			bestScore = currentPoints;
-			try {
-				bestScoreStorage.setItem("best-score", bestScore + "");
-			} catch (e) {
-				alert("Could not save best score: " + e);
-			}
-			document.getElementById("game-over-high-score-banner").style
-				.display = "block";
-		} else {
-			document.getElementById("game-over-high-score-banner").style
-				.display = "none";
-		}
+
+	if (storageManager.maybeUpdateBestScore(currentPoints)) {
+		document.getElementById("game-over-high-score-banner").style.display = "block";
+	} else {
+		document.getElementById("game-over-high-score-banner").style.display = "none";
 	}
-	document.getElementById("game-over-best-score").textContent = bestScore;
+	document.getElementById("game-over-best-score").textContent = storageManager.getBestScore();
 }
 
 function updatePoints() {
@@ -711,8 +728,6 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 					pathManager.resetPath();
 					updateCurrentPathSumText();
 				}
-			} else {
-				console.log("not in path");
 			}
 		});
 	});
@@ -789,6 +804,7 @@ function draw() {
 	grid.render(ctx);
 
 	pathManager = new PathManager();
+	storageManager = new StorageManager();
 
 	// Add listeners for both. Only one will work based on the use_click_highlighting
 	// user setting variable.
