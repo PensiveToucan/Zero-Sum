@@ -32,103 +32,111 @@
         <button class="button-80" id="pause-game-btn">Pause</button>
       </div>
       <div class="overlay" id="welcome-overlay">
-        <div id="welcome-header" class="overlay-header">Zero Sum</div>
-        <div class="overlay-content">
-          Highlight sequences of numbers that sum to zero.
-          The longer the sequence, the more points it's worth.
-          Get as many points as you can in 60 seconds.<p></p>
-          Click a number to highlight it. Click outside the number grid to clear all highlights.<p></p>
-          A number can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted number.
+        <div class="overlay-container">
+          <div id="welcome-header" class="overlay-header">Zero Sum</div>
+          <div class="overlay-content">
+            Highlight sequences of numbers that sum to zero.
+            The longer the sequence, the more points it's worth.
+            Get as many points as you can in 60 seconds.<p></p>
+            Click a number to highlight it. Click outside the number grid to clear all highlights.<p></p>
+            A number can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted number.
+          </div>
+          <div class="example-img-div">
+            <img id="example-img" src="zero_sum_example.png" />
+          </div>
+          <button class="overlay-btn welcome-overlay-btn button-80" id="start-game-btn">Play</button>
+          <button class="overlay-btn welcome-overlay-btn button-80" id="settings-btn">Settings</button>
         </div>
-        <div class="example-img-div">
-          <img id="example-img" src="zero_sum_example.png" />
-        </div>
-        <button class="overlay-btn welcome-overlay-btn button-80" id="start-game-btn">Play</button>
-        <button class="overlay-btn welcome-overlay-btn button-80" id="settings-btn">Settings</button>
       </div>
       <div class="overlay" id="pause-overlay">
-        <div id="pause-header" class="overlay-header">Pause</div>
-        <button class="overlay-btn resume-game-btn button-80">Resume</button>
-        <button class="overlay-btn quit-game-btn button-80">Quit</button>
+        <div class="overlay-container">
+          <div id="pause-header" class="overlay-header">Pause</div>
+          <button class="overlay-btn resume-game-btn button-80">Resume</button>
+          <button class="overlay-btn quit-game-btn button-80">Quit</button>
+        </div>
       </div>
       <div class="overlay" id="settings-overlay">
-        <div id="pause-header" class="overlay-header">Settings</div>
-        <div class="overlay-content">
-          <div class="settings-section-title">Tile highlighting</div>
-          <div>
-            <label>
-              <table>
-                <tr>
-                  <td>
-                    <input type="radio" id="settings-click" name="settings-highlight-method" value="click" checked>
-                  </td>
-                  <td>
-                    <div for="click" class="settings-label">
-                      Use clicks for highlighting tiles
-                      <div class="settings-sublabel">Click each individual tile to highlight it.</div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </label>
-          </div>
-          <div>
-            <label>
-              <table>
-                <tr>
-                  <td>
-                    <input type="radio" id="settings-gesture" name="settings-highlight-method" value="gesture">
-                  </td>
-                  <td>
-                    <div for="gesture" class="settings-label">
-                      Use gestures for highlighting tiles
-                      <div class="settings-sublabel">Click and drag your mouse over a tile to highlight it.</div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </label>
-          </div>
-        </div>
-        <div class="overlay-content">
-          <div class="settings-section-title">Arithmetic Tiles</div>
-          <div>
-            <label>
-              <table>
-                <tr>
-                  <td>
-                    <input type="checkbox" id="settings-arithmetic-tiles" name="settings-arithmetic-tiles" value="click" checked>
-                  </td>
-                  <td>
-                    <div for="settings-arithmetic-tiles" class="settings-label">
-                      Enable arithmetic tiles
-                      <div class="settings-sublabel">
-                        When an arithmetic tile is highlighted, it will operate on the current sum.
+        <div class="overlay-container">
+          <div id="settings-header" class="overlay-header">Settings</div>
+          <div class="overlay-content">
+            <div class="settings-section-title">Tile highlighting</div>
+            <div>
+              <label>
+                <table>
+                  <tr>
+                    <td>
+                      <input type="radio" id="settings-click" name="settings-highlight-method" value="click" checked>
+                    </td>
+                    <td>
+                      <div for="click" class="settings-label">
+                        Use clicks for highlighting tiles
+                        <div class="settings-sublabel">Click each individual tile to highlight it.</div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </label>
+                    </td>
+                  </tr>
+                </table>
+              </label>
+            </div>
+            <div>
+              <label>
+                <table>
+                  <tr>
+                    <td>
+                      <input type="radio" id="settings-gesture" name="settings-highlight-method" value="gesture">
+                    </td>
+                    <td>
+                      <div for="gesture" class="settings-label">
+                        Use gestures for highlighting tiles
+                        <div class="settings-sublabel">Click and drag your mouse over a tile to highlight it.</div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </label>
+            </div>
           </div>
+          <div class="overlay-content">
+            <div class="settings-section-title">Arithmetic Tiles</div>
+            <div>
+              <label>
+                <table>
+                  <tr>
+                    <td>
+                      <input type="checkbox" id="settings-arithmetic-tiles" name="settings-arithmetic-tiles" value="click" checked>
+                    </td>
+                    <td>
+                      <div for="settings-arithmetic-tiles" class="settings-label">
+                        Enable arithmetic tiles
+                        <div class="settings-sublabel">
+                          When an arithmetic tile is highlighted, it will operate on the current sum.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </label>
+            </div>
+          </div>
+          <button class="overlay-btn button-80" id="close-settings-btn">Save</button>
         </div>
-        <button class="overlay-btn button-80" id="close-settings-btn">Save</button>
       </div>
       <div class="overlay" id="game-over-overlay">
-        <h2 id="game-over-header" class="overlay-header">Game Over</h2>
-        <h3 id="game-over-high-score-banner">High Score!</h3>
-        <table id="game-over-table">
-          <tr>
-            <td class="label">Score:</td>
-            <td id="game-over-score"></td>
-          </tr>
-          <tr>
-            <td class="label">Best:</td>
-            <td id="game-over-best-score"></td>
-          </tr>
-        </table>
-        <button class="overlay-btn button-80" id="play-again-btn">Play again</button>
-        <button class="overlay-btn quit-game-btn button-80">Quit</button>
+        <div class="overlay-container">
+          <h2 id="game-over-header" class="overlay-header">Game Over</h2>
+          <h3 id="game-over-high-score-banner">High Score!</h3>
+          <table id="game-over-table">
+            <tr>
+              <td class="game-over-label">Score:</td>
+              <td id="game-over-score"></td>
+            </tr>
+            <tr>
+              <td class="game-over-label">Best:</td>
+              <td id="game-over-best-score"></td>
+            </tr>
+          </table>
+          <button class="overlay-btn button-80" id="play-again-btn">Play again</button>
+          <button class="overlay-btn quit-game-btn button-80">Quit</button>
+        </div>
       </div>
     </div>
   </body>

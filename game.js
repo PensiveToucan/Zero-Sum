@@ -1,7 +1,6 @@
 // Default sizes. Will be updated dynamically in the |draw| method.
 // All sizes are in pixels by default.
 var TILE_SIZE = 100;
-var GRID_SIZE = 5;
 
 var grid;
 var pathManager;
@@ -44,6 +43,8 @@ const MULTIPLIER_TILE_BG_COL = "#e07a5f";
 const SQUARE_TILE_BG_COL = "#be6f7f";
 const GRID_X_PADDING = 20;	// 20px padding on each side of grid
 const TILE_TEXT_SIZE = 20;	// 20px font size
+const TILE_NUMBER_LIMIT = 9;	// Tiles will have numbers in range [-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT]
+const GRID_SIZE = 5;
 
 class StorageManager {
 	constructor() {
@@ -506,11 +507,11 @@ function generateTile(cx, cy) {
 	// Don't let the ratio of positive to negative numbers skew too much in
 	// either direction.
 	if (numPositive - numNegative > 5) {
-		return new AdderTile(cx, cy, getRandomIntInclusive(-9, 0));
+		return new AdderTile(cx, cy, getRandomIntInclusive(-TILE_NUMBER_LIMIT, 0));
 	} else if (numNegative - numPositive > 5) {
-		return new AdderTile(cx, cy, getRandomIntInclusive(0, 9));
+		return new AdderTile(cx, cy, getRandomIntInclusive(0, TILE_NUMBER_LIMIT));
 	} else {
-		return new AdderTile(cx, cy, getRandomIntInclusive(-9, 9));
+		return new AdderTile(cx, cy, getRandomIntInclusive(-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT));
 	}
 }
 
@@ -569,21 +570,45 @@ function startTimer() {
 	}, 1000);
 }
 
+function clearOverlays() {
+	for (let elem of document.getElementsByClassName("overlay")) {
+		elem.style.display = "none";
+	}
+}
+
+function showOverlay(overlay_name) {
+	// Use flex for vertically aligning content in the center.
+	// For the welcome and settings overlays, we will keep content aligned to
+	// the top.
+	if (overlay_name == "SETTINGS") {
+		document.getElementById("settings-overlay").style.display = "block";
+		return;
+	}
+	if (overlay_name == "WELCOME") {
+		clearOverlays();
+		document.getElementById("welcome-overlay").style.display = "block";
+		return;
+	}
+	if (overlay_name == "PAUSE") {
+		document.getElementById("pause-overlay").style.display = "flex";
+		return;
+	}
+	if (overlay_name == "GAME_OVER") {
+		document.getElementById("game-over-overlay").style.display = "flex";
+		return;
+	}
+}
+
 function pauseGame() {
 	enabled = false;
 	// Pause timer.
 	clearInterval(timerId);
 	// Show the pause overlay.
-	for (let elem of document.getElementsByClassName("overlay")) {
-		elem.style.display = "none";
-	}
-	document.getElementById("pause-overlay").style.display = "block";
+	showOverlay("PAUSE");
 }
 
 function resumeGame() {
-	for (let elem of document.getElementsByClassName("overlay")) {
-		elem.style.display = "none";
-	}
+	clearOverlays();
 	startTimer();
 	enabled = true;
 }
@@ -593,9 +618,7 @@ function startGame() {
 	updatePoints();
 	enabled = true;
 	// Hide all overlays
-	for (let elem of document.getElementsByClassName("overlay")) {
-		elem.style.display = "none";
-	}
+	clearOverlays();
 	document.getElementById("timer-view").classList.remove("timer-warning");
 	document.getElementById("timer-label").classList.remove("timer-warning");
 	document.getElementById("timer-value").classList.remove("timer-warning");
@@ -609,7 +632,7 @@ function gameOver() {
 		updateCurrentPathSumText();
 	}
 	enabled = false;
-	document.getElementById("game-over-overlay").style.display = "block";
+	showOverlay("GAME_OVER");
 	document.getElementById("game-over-score").textContent = currentPoints;
 
 	if (storageManager.maybeUpdateBestScore(currentPoints)) {
@@ -823,8 +846,7 @@ function draw() {
 				startGame();
 			}
 		});
-	document.getElementById("pause-game-btn").addEventListener('click',
-		pauseGame);
+	document.getElementById("pause-game-btn").addEventListener('click', pauseGame);
 	for (let elem of document.getElementsByClassName("resume-game-btn")) {
 		elem.addEventListener('click', resumeGame);
 	}
@@ -844,17 +866,14 @@ function draw() {
 				updateCurrentPathSumText();
 				updatePoints();
 				// Show the welcome overlay
-				for (let elem of document.getElementsByClassName("overlay")) {
-					elem.style.display = "none";
-				}
-				document.getElementById("welcome-overlay").style.display = "block";
+				showOverlay("WELCOME");
 			}
 		});
 	}
 	document.getElementById("settings-btn").addEventListener('click',
 		function() {
 			// Show only the settings overlay.
-			document.getElementById("settings-overlay").style.display = "block";
+			showOverlay("SETTINGS");
 
 			// Update the UI based on the setting variable we have.
 			if (use_click_highlighting) {
@@ -892,9 +911,6 @@ function draw() {
 
 	timeLeft = TIME_LIMIT_SEC;
 
-	// Hide all overlays except for the welcome overlay.
-	for (let elem of document.getElementsByClassName("overlay")) {
-		elem.style.display = "none";
-	}
-	document.getElementById("welcome-overlay").style.display = "block";
+	// Show the welcome overlay.
+	showOverlay("WELCOME");
 }
