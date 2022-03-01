@@ -3,18 +3,8 @@
 var TILE_SIZE = 100;
 var GRID_SIZE = 5;
 
-var TILE_BG_COL = '#fefefe';
-var TILE_HIGHLIGHT_COL = '#e7e7e7';
-var TILE_TEXT_COL = '#666666';
-var MULTIPLIER_TILE_BG_COL = "#e07a5f";
-var SQUARE_TILE_BG_COL = "#be6f7f";
-var GRID_X_PADDING = 20;	// 20px padding on each side of grid
-var TILE_TEXT_SIZE = 20;	// 20px font size
-
-var inPath = false;
-var currentPath = [];
-var currentSum = 0;
 var grid;
+var pathManager;
 var ctx;
 
 // "Tile time" is measured in ticks. Each tick happens when a new tile is
@@ -46,6 +36,14 @@ const TIME_WARNING_THRESHOLD = 10;
 const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
 const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
 
+const TILE_BG_COL = '#fefefe';
+const TILE_HIGHLIGHT_COL = '#e7e7e7';
+const TILE_TEXT_COL = '#666666';
+const MULTIPLIER_TILE_BG_COL = "#e07a5f";
+const SQUARE_TILE_BG_COL = "#be6f7f";
+const GRID_X_PADDING = 20;	// 20px padding on each side of grid
+const TILE_TEXT_SIZE = 20;	// 20px font size
+
 // Save best score
 try {
 	var bestScoreStorage = window.localStorage;
@@ -54,7 +52,73 @@ try {
 	alert("Could not access local storage. Will not save best score.");
 }
 
-class Tile {
+// Manages current path state and path sum. Does not deal with UI.
+class PathManager {
+	constructor() {
+		this.inPathBool = false;
+		this.currentPath = [];
+		this.currentSum = 0;
+	}
+
+	// Only adds the |coords| to the path if they haven't been added before and are
+	// adjacent to an existing tile in the path.
+	maybeAddToPath(coords) {
+		if (!coords) {
+			return false;
+		}
+		for (const t of this.currentPath) {
+			if (t.row === coords.row && t.col === coords.col) {
+				return false;
+			}
+		}
+
+		if (this.currentPath.length === 0) {
+			this.currentPath.push(coords);
+			this.currentSum = grid.grid[coords.col][coords.row].applyOp(this.currentSum);
+			return true;
+		} else {
+			for (const t of this.currentPath) {
+				if ((t.row === coords.row && t.col === coords.col + 1) ||
+					(t.row === coords.row && t.col === coords.col - 1) ||
+					(t.row - 1 === coords.row && t.col === coords.col) ||
+					(t.row + 1 === coords.row && t.col === coords.col)) {
+					this.currentPath.push(coords);
+					this.currentSum = grid.grid[coords.col][coords.row].applyOp(this.currentSum);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	resetPath() {
+		this.inPathBool = false;
+		this.currentPath = [];
+		this.currentSum = 0;
+	}
+
+	inPath() {
+		return this.inPathBool;
+	}
+
+	setInPath(b) {
+		this.inPathBool = b;
+	}
+
+	getCurrentPath() {
+		return this.currentPath;
+	}
+
+	getCurrentPathLength() {
+		return this.currentPath.length;
+	}
+
+	getCurrentSum() {
+		return this.currentSum;
+	}
+}
+
+class AdderTile {
 	// cx and cy store the coordinates of the center of the tile.
 	constructor(cx, cy, val) {
 		this.cx = cx;
@@ -245,47 +309,14 @@ function getRandomIntInclusive(min, max) {
 
 function updateCurrentPathSumText() {
 	let sum_value = document.getElementById("sum-value");
-	if (currentPath.length > 0) {
-		sum_value.textContent = currentSum;
+	if (pathManager.getCurrentPathLength() > 0) {
+		sum_value.textContent = pathManager.getCurrentSum();
 	} else {
 		// Treat an empty path as having no sum as opposed to a "zero" sum
 		sum_value.textContent = "";
 	}
 }
 
-// Only adds the |coords| to the path if they haven't been added before and are
-// adjacent to an existing tile in the path.
-function maybeAddToPath(coords) {
-	if (!coords) {
-		return false;
-	}
-	for (const t of currentPath) {
-		if (t.row === coords.row && t.col === coords.col) {
-			return false;
-		}
-	}
-
-	if (currentPath.length === 0) {
-		currentPath.push(coords);
-		currentSum = grid.grid[coords.col][coords.row].applyOp(currentSum);
-		updateCurrentPathSumText();
-		return true;
-	} else {
-		for (const t of currentPath) {
-			if ((t.row === coords.row && t.col === coords.col + 1) ||
-				(t.row === coords.row && t.col === coords.col - 1) ||
-				(t.row - 1 === coords.row && t.col === coords.col) ||
-				(t.row + 1 === coords.row && t.col === coords.col)) {
-				currentPath.push(coords);
-				currentSum = grid.grid[coords.col][coords.row].applyOp(
-					currentSum);
-				updateCurrentPathSumText();
-				return true;
-			}
-		}
-	}
-	return false;
-}
 
 function vanishFrame() {
 	animationRunning = true;
@@ -294,7 +325,7 @@ function vanishFrame() {
 	// animation.
 	// ================================================================
 	let allVanishesDone = true;
-	for (const coord of currentPath) {
+	for (const coord of pathManager.getCurrentPath()) {
 		if (grid.grid[coord.col][coord.row].tileSize > 0) {
 			allVanishesDone = false;
 			grid.grid[coord.col][coord.row].showText = false;
@@ -310,11 +341,10 @@ function vanishFrame() {
 		grid.render(ctx);
 		requestAnimationFrame(vanishFrame);
 	} else {
-		currentPath = [];
+		pathManager.resetPath();
 
 		// We update the sum text here since the path has been cleared
 		// and so the currentSum being zero will be treated differently.
-		currentSum = 0;
 		updateCurrentPathSumText();
 
 		// =========================================================
@@ -447,11 +477,11 @@ function generateTile(cx, cy) {
 	// Don't let the ratio of positive to negative numbers skew too much in
 	// either direction.
 	if (numPositive - numNegative > 5) {
-		return new Tile(cx, cy, getRandomIntInclusive(-9, 0));
+		return new AdderTile(cx, cy, getRandomIntInclusive(-9, 0));
 	} else if (numNegative - numPositive > 5) {
-		return new Tile(cx, cy, getRandomIntInclusive(0, 9));
+		return new AdderTile(cx, cy, getRandomIntInclusive(0, 9));
 	} else {
-		return new Tile(cx, cy, getRandomIntInclusive(-9, 9));
+		return new AdderTile(cx, cy, getRandomIntInclusive(-9, 9));
 	}
 }
 
@@ -546,7 +576,7 @@ function startGame() {
 function gameOver() {
 	if (!animationRunning) {
 		grid.clearHighlights(ctx);
-		currentPath = [];
+		pathManager.resetPath();
 		updateCurrentPathSumText();
 	}
 	enabled = false;
@@ -574,7 +604,7 @@ function gameOver() {
 }
 
 function updatePoints() {
-	currentPoints += currentPath.length * currentPath.length;
+	currentPoints += pathManager.getCurrentPathLength() * pathManager.getCurrentPathLength();
 	document.getElementById("points-value").textContent = currentPoints;
 }
 
@@ -584,8 +614,8 @@ function handlePathStart(x, y) {
 	if (!enabled) {
 		return;
 	}
-	if (!inPath) {
-		inPath = true;
+	if (!pathManager.inPath()) {
+		pathManager.setInPath(true);
 		if (animationRunning) {
 			return;
 		}
@@ -593,12 +623,13 @@ function handlePathStart(x, y) {
 		if (coords == null) {
 			return;
 		}
-		if (currentPath.length === 0 &&
+		if (pathManager.getCurrentPathLength() === 0 &&
 			grid.grid[coords.col][coords.row].getType() != "ADD") {
 			// Prevent arithmetic op tiles from being the first in the path.
 			grid.clearHighlights(ctx);
 			fidget(coords);
-		} else if (maybeAddToPath(coords)) {
+		} else if (pathManager.maybeAddToPath(coords)) {
+			updateCurrentPathSumText();
 			grid.highlightTile(ctx, coords.col, coords.row);
 		}
 	}
@@ -610,7 +641,7 @@ function handlePathMove(x, y) {
 	if (!enabled) {
 		return;
 	}
-	if (inPath) {
+	if (pathManager.inPath()) {
 		if (animationRunning) {
 			return;
 		}
@@ -618,12 +649,13 @@ function handlePathMove(x, y) {
 		if (coords == null) {
 			return;
 		}
-		if (currentPath.length === 0 &&
+		if (pathManager.getCurrentPathLength() === 0 &&
 			grid.grid[coords.col][coords.row].getType() != "ADD") {
 			// Prevent arithmetic op tiles from being the first in the path.
 			grid.clearHighlights(ctx);
 			fidget(coords);
-		} else if (maybeAddToPath(coords)) {
+		} else if (pathManager.maybeAddToPath(coords)) {
+			updateCurrentPathSumText();
 			grid.highlightTile(ctx, coords.col, coords.row);
 		}
 	}
@@ -634,8 +666,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		if (use_click_highlighting) {
 			return;
 		}
-		return handlePathStart(e.clientX - rect.left, e.clientY - rect
-			.top);
+		return handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
 	});
 	canvas.addEventListener("touchstart", function(e) {
 		if (use_click_highlighting) {
@@ -667,20 +698,21 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 			if (!enabled) {
 				return;
 			}
-			if (inPath) {
-				inPath = false;
+			if (pathManager.inPath()) {
+				pathManager.setInPath(false);
 				if (animationRunning) {
 					return;
 				}
-				if (currentSum == 0) {
+				if (pathManager.getCurrentSum() == 0) {
 					updatePoints();
 					vanishFrame();
 				} else {
 					grid.clearHighlights(ctx);
-					currentPath = [];
-					currentSum = 0;
+					pathManager.resetPath();
 					updateCurrentPathSumText();
 				}
+			} else {
+				console.log("not in path");
 			}
 		});
 	});
@@ -691,16 +723,14 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		if (!use_click_highlighting) {
 			return;
 		}
-		if (!inPath) {
-			handlePathStart(e.clientX - rect.left, e.clientY - rect
-				.top);
-			inPath = true;
+		if (!pathManager.inPath()) {
+			handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
+			pathManager.setInPath(true);
 		} else {
-			handlePathMove(e.clientX - rect.left, e.clientY - rect
-				.top);
+			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
 		}
-		if (currentSum == 0) {
-			inPath = false;
+		if (pathManager.getCurrentSum() == 0) {
+			pathManager.setInPath(false);
 			updatePoints();
 			vanishFrame();
 		}
@@ -710,10 +740,8 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		if (!canvas.contains(e.target)) {
-			inPath = false;
+			pathManager.resetPath();
 			grid.clearHighlights(ctx);
-			currentPath = [];
-			currentSum = 0;
 			updateCurrentPathSumText();
 		}
 	});
@@ -760,6 +788,8 @@ function draw() {
 	grid.init();
 	grid.render(ctx);
 
+	pathManager = new PathManager();
+
 	// Add listeners for both. Only one will work based on the use_click_highlighting
 	// user setting variable.
 	addListenersForDragBasedHighlighting(rect, canvas, document);
@@ -794,9 +824,7 @@ function draw() {
 				document.getElementById("timer-value").textContent = timeLeft;
 				grid.init();
 				grid.render(ctx);
-				currentPath = [];
-				currentPoints = 0;
-				currentSum = 0;
+				pathManager.resetPath();
 				updateCurrentPathSumText();
 				updatePoints();
 				// Show the welcome overlay
