@@ -927,6 +927,8 @@ function draw() {
 				use_dark_theme = false;
 				document.body.classList.remove('dark-theme');
 			}
+			// We need to re-render the grid in case the theme has changed.
+			grid.render(ctx);
 		});
 
 	timeLeft = TIME_LIMIT_SEC;
