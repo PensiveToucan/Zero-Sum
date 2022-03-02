@@ -1,3 +1,32 @@
+:root {
+	--labelGray: #888888;
+	--white: #ffffff;
+	--titleBlack: #333333;
+	--textBlack: #555555;
+	--titleWhite: #fefefe;
+	--textWhite: #bdc1c6;
+	--buttonGreen: rgb(45, 164, 78);
+	--buttonGray: #717171;
+	--alertRed: #c14955;
+	--highlightOrange: #e55934;
+	--richBlack: #202124;
+}
+
+.light-theme {
+	--themeBg: var(--white);
+	--labelColor: var(--labelGray);
+	--textColor: var(--textBlack);
+	--titleColor: var(--titleBlack);
+}
+
+.dark-theme {
+	--themeBg: var(--richBlack);
+	--labelColor: var(--labelGray);
+	--textColor: var(--textWhite);
+	--titleColor: var(--titleWhite);
+}
+
+
 body {
 	font-family: sans-serif;
 	padding: 5px;
@@ -8,6 +37,9 @@ body {
 	*/
 	overscroll-behavior: contain;
 	overflow-y: hidden;
+	background-color: var(--themeBg);
+	/* default text color */
+	color: var(--textColor);
 }
 * {
 	/*
@@ -26,7 +58,7 @@ body {
 	width: 100%;
 }
 .label {
-	color: #888888;
+	color: var(--labelColor);
 }
 .status-block {
 	width: 100px;
@@ -62,7 +94,7 @@ body {
 	margin: 0px auto;
 }
 .overlay {
-	background: rgba(255, 255, 255, 1);
+	background: var(--themeBg);
 	position: fixed;
 	left: 0;
 	right: 0;
@@ -76,18 +108,15 @@ body {
 #canvas-container {
 	position: relative;
 }
-#game-over-header {
-	color: #232323;
-}
 #game-over-high-score-banner {
 	text-align: center;
 	display: none;
-	color: #e55934;
+	color: var(--highlightOrange);
+	padding: 10px;
 }
 #game-over-table {
-	color: #555555;
 	text-align: left;
-	margin: 0px auto;
+	margin: 10px auto;
 }
 #game-over-table td {
 	padding: 5px;
@@ -102,30 +131,20 @@ body {
 	text-align: center;
 	margin-top: 5%;
 	font-size: 25px;
+	color: var(--titleColor);
 }
 .overlay-content {
-	color: #232323;
+	color: var(--textColor);
 	padding: 5px;
 	margin: 10px auto 0 auto;
 	max-width: 500px;
 	font-size: 14px;
-}
-#zero-sum-example {
-	text-align: center;
 }
 #pause-game-btn {
 	display: block;
 	margin: 0px auto;
 	padding: 7px 0;
 	width: 100px;
-}
-#github-logo-link {
-	width: 70px;
-	display: block;
-	margin: 0px auto 30px auto;
-}
-#github-logo {
-	width: 70px;
 }
 .overlay-btn-table {
 	display: table;
@@ -137,8 +156,8 @@ body {
 }
 .timer-warning {
 	font-weight: bold !important;
-	color: #fefefe !important;
-	background-color: #c14955 !important;
+	color: var(--white) !important;
+	background-color: var(--alertRed) !important;
 }
 #header {
 	display: flex;
@@ -146,18 +165,14 @@ body {
 	flex-wrap: nowrap;
 	align-items: center;
 	justify-content: center;
-	border-bottom: 1px solid rgb(240, 240, 240);
 }
 #header-title {
 	font-size: 20px;
 	padding: 10px;
-	color: #232323;
+	color: var(--titleColor);
 }
 #welcome-header {
 	font-size: 30px;
-}
-input[type='radio'] {
-	vertical-align: middle;
 }
 .settings-label {
 	cursor: pointer;
@@ -165,26 +180,21 @@ input[type='radio'] {
 }
 .settings-sublabel {
 	font-size: 13px;
-	color: #919191;
+	color: var(--labelColor);
+	padding: 3px 0;
 }
 .settings-section-title {
 	font-size: 16px;
 	margin-top: 10px;
 }
-#example-img {
-	width: 300px;
-}
-.example-img-div {
-	text-align: center;
-}
 
 /* https://getcssscan.com/css-buttons-examples */
 .button-80 {
-  background: #fff;
+  background: var(--themeBg);
   backface-visibility: hidden;
   border-radius: 5px;
-  border: 2px solid rgb(227, 227, 227);
-  color: #717171;
+  border: 1px solid var(--textColor);
+  color: var(--textColor);
   position: relative;
   text-align: center;
   transform: translateZ(0) scale(1);
@@ -202,7 +212,10 @@ input[type='radio'] {
 }
 
 #start-game-btn, .resume-game-btn, #play-again-btn {
-	background-color: rgb(45, 164, 78);
-	color: #fefefe;
-	border-color: rgba(27, 31, 36, 0.15);
+	background-color: var(--buttonGreen);
+	color: var(--white);
+	border-color: var(--buttonGreen);
+}
+.game-over-label {
+	color: var(--labelColor);
 }

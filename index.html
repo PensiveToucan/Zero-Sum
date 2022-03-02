@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
 
-  <body onload="draw()">
+  <body onload="draw()" class="light-theme">
     <div id="header">
       <div id="header-title">Zero Sum</div>
     </div>
@@ -41,9 +41,6 @@
             Click a number to highlight it. Click outside the number grid to clear all highlights.<p></p>
             A number can be highlighted if it is adjacent (row-wise or column-wise) to an already highlighted number.
           </div>
-          <div class="example-img-div">
-            <img id="example-img" src="zero_sum_example.png" />
-          </div>
           <button class="overlay-btn welcome-overlay-btn button-80" id="start-game-btn">Play</button>
           <button class="overlay-btn welcome-overlay-btn button-80" id="settings-btn">Settings</button>
         </div>
@@ -58,6 +55,25 @@
       <div class="overlay" id="settings-overlay">
         <div class="overlay-container">
           <div id="settings-header" class="overlay-header">Settings</div>
+          <div class="overlay-content">
+            <div class="settings-section-title">Dark theme</div>
+            <div>
+              <label>
+                <table>
+                  <tr>
+                    <td>
+                      <input type="checkbox" id="settings-dark-theme" name="settings-dark-theme" value="click">
+                    </td>
+                    <td>
+                      <div for="settings-dark-theme" class="settings-label">
+                        Enable dark theme
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </label>
+            </div>
+          </div>
           <div class="overlay-content">
             <div class="settings-section-title">Tile highlighting</div>
             <div>
@@ -122,8 +138,8 @@
       </div>
       <div class="overlay" id="game-over-overlay">
         <div class="overlay-container">
-          <h2 id="game-over-header" class="overlay-header">Game Over</h2>
-          <h3 id="game-over-high-score-banner">High Score!</h3>
+          <div id="game-over-header" class="overlay-header">Game Over</div>
+          <div id="game-over-high-score-banner">High Score!</div>
           <table id="game-over-table">
             <tr>
               <td class="game-over-label">Score:</td>

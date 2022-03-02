@@ -30,21 +30,29 @@ var currentPoints = 0;
 // User setting
 var use_click_highlighting = true;
 var enable_arithmetic_tiles = false;
+var use_dark_theme = false;
 
 const TIME_LIMIT_SEC = 60;
 const TIME_WARNING_THRESHOLD = 10;
 const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
 const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
 
-const TILE_BG_COL = '#fefefe';
-const TILE_HIGHLIGHT_COL = '#e7e7e7';
-const TILE_TEXT_COL = '#666666';
 const MULTIPLIER_TILE_BG_COL = "#e07a5f";
 const SQUARE_TILE_BG_COL = "#be6f7f";
 const GRID_X_PADDING = 20;	// 20px padding on each side of grid
 const TILE_TEXT_SIZE = 20;	// 20px font size
 const TILE_NUMBER_LIMIT = 9;	// Tiles will have numbers in range [-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT]
 const GRID_SIZE = 5;
+
+function getTileBgColor() {
+	return use_dark_theme ? "#202124" : "#ffffff";
+}
+function getTileTextColor() {
+	return use_dark_theme ? "#bdc1c6" : "#555555";
+}
+function getTileHighlightColor() {
+	return use_dark_theme ? "#383A3F" : "#e7e7e7";
+}
 
 class StorageManager {
 	constructor() {
@@ -166,7 +174,7 @@ class AdderTile {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
+		ctx.fillStyle = this.highlight ? getTileHighlightColor() : getTileBgColor();
 		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
 			2,
 			this.tileSize, this.tileSize);
@@ -174,7 +182,7 @@ class AdderTile {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
-			ctx.fillStyle = TILE_TEXT_COL;
+			ctx.fillStyle = getTileTextColor();
 			ctx.fillText(this.val, this.cx, this.cy);
 		}
 	}
@@ -200,7 +208,7 @@ class MultiplierTile {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
+		ctx.fillStyle = this.highlight ? getTileHighlightColor() : getTileBgColor();
 		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
 			2,
 			this.tileSize, this.tileSize);
@@ -212,7 +220,7 @@ class MultiplierTile {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
-			ctx.fillStyle = TILE_BG_COL;
+			ctx.fillStyle = getTileBgColor();	// This will always be the background color
 			if (this.multiplier === -1) {
 				ctx.fillText("-x", this.cx, this.cy);
 			} else {
@@ -241,7 +249,7 @@ class SquareTile {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = this.highlight ? TILE_HIGHLIGHT_COL : TILE_BG_COL;
+		ctx.fillStyle = this.highlight ? getTileHighlightColor() : getTileBgColor();
 		ctx.fillRect(this.cx - this.tileSize / 2, this.cy - this.tileSize /
 			2,
 			this.tileSize, this.tileSize);
@@ -253,7 +261,7 @@ class SquareTile {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
-			ctx.fillStyle = TILE_BG_COL;
+			ctx.fillStyle = getTileBgColor();	// This will always be the background color
 			ctx.fillText("x²", this.cx, this.cy);
 		}
 	}
@@ -291,7 +299,7 @@ class TileGrid {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = TILE_BG_COL;
+		ctx.fillStyle = getTileBgColor();
 		ctx.fillRect(0, 0, TILE_SIZE * GRID_SIZE, TILE_SIZE * GRID_SIZE);
 		for (let col = 0; col < GRID_SIZE; col++) {
 			for (let row = 0; row < GRID_SIZE; row++) {
@@ -819,7 +827,7 @@ function draw() {
 
 	let rect = canvas.getBoundingClientRect();
 
-	ctx.fillStyle = TILE_BG_COL;
+	ctx.fillStyle = getTileBgColor();
 	ctx.fillRect(0, 0, canvasDimCss, canvasDimCss);
 
 	grid = new TileGrid(0, 0);
@@ -886,6 +894,11 @@ function draw() {
 			} else {
 				document.getElementById("settings-arithmetic-tiles").checked = false;
 			}
+			if (use_dark_theme) {
+				document.getElementById("settings-dark-theme").checked = true;
+			} else {
+				document.getElementById("settings-dark-theme").checked = false;
+			}
 		});
 	document.getElementById("close-settings-btn").addEventListener('click',
 		function() {
@@ -906,6 +919,13 @@ function draw() {
 				enable_arithmetic_tiles = true;
 			} else {
 				enable_arithmetic_tiles = false;
+			}
+			if (document.getElementById("settings-dark-theme").checked) {
+				use_dark_theme = true;
+				document.body.classList.add('dark-theme');
+			} else {
+				use_dark_theme = false;
+				document.body.classList.remove('dark-theme');
 			}
 		});
 
