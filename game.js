@@ -43,6 +43,7 @@ const GRID_X_PADDING = 20;	// 20px padding on each side of grid
 const TILE_TEXT_SIZE = 20;	// 20px font size
 const TILE_NUMBER_LIMIT = 9;	// Tiles will have numbers in range [-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT]
 const GRID_SIZE = 5;
+const TILE_SIGN_SKEW = 5;	// Try to ensure |#positive_tiles - #negative_tiles| <= TILE_SIGN_SKEW
 
 function getTileBgColor() {
 	return use_dark_theme ? "#202124" : "#ffffff";
@@ -514,9 +515,9 @@ function generateTile(cx, cy) {
 	// ADD (default)
 	// Don't let the ratio of positive to negative numbers skew too much in
 	// either direction.
-	if (numPositive - numNegative > 5) {
+	if (numPositive - numNegative > TILE_SIGN_SKEW) {
 		return new AdderTile(cx, cy, getRandomIntInclusive(-TILE_NUMBER_LIMIT, 0));
-	} else if (numNegative - numPositive > 5) {
+	} else if (numNegative - numPositive > TILE_SIGN_SKEW) {
 		return new AdderTile(cx, cy, getRandomIntInclusive(0, TILE_NUMBER_LIMIT));
 	} else {
 		return new AdderTile(cx, cy, getRandomIntInclusive(-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT));
