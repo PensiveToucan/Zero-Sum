@@ -715,28 +715,50 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		if (use_click_highlighting) {
 			return;
 		}
-		return handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
+		handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
+		if (pathManager.getCurrentSum() == 0) {
+			pathManager.setInPath(false);
+			updatePoints();
+			vanishFrame();
+		}
 	});
 	canvas.addEventListener("touchstart", function(e) {
 		if (use_click_highlighting) {
 			return;
 		}
-		return handlePathStart(e.touches[0].clientX - rect.left, e
-			.touches[0].clientY - rect.top);
+		handlePathStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+		if (pathManager.getCurrentSum() == 0) {
+			pathManager.setInPath(false);
+			updatePoints();
+			vanishFrame();
+		}
+
 	});
 	canvas.addEventListener("mousemove", function(e) {
 		if (use_click_highlighting) {
 			return;
 		}
-		return handlePathMove(e.clientX - rect.left, e.clientY - rect
-			.top);
+		if (pathManager.inPath()) {
+			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
+			if (pathManager.getCurrentSum() == 0) {
+				pathManager.setInPath(false);
+				updatePoints();
+				vanishFrame();
+			}
+		}
 	});
 	canvas.addEventListener("touchmove", function(e) {
 		if (use_click_highlighting) {
 			return;
 		}
-		return handlePathMove(e.touches[0].clientX - rect.left, e
-			.touches[0].clientY - rect.top);
+		if (pathManager.inPath()) {
+			handlePathMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+			if (pathManager.getCurrentSum() == 0) {
+				pathManager.setInPath(false);
+				updatePoints();
+				vanishFrame();
+			}
+		}
 	});
 
 	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
@@ -772,7 +794,6 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		}
 		if (!pathManager.inPath()) {
 			handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
-			pathManager.setInPath(true);
 		} else {
 			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
 		}
