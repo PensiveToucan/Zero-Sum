@@ -1,3 +1,24 @@
+// Define all constants first.
+// Default user setting
+const DEFAULT_USER_SETTINGS = {
+	"use_click_highlighting": true,
+	"enable_arithmetic_tiles": false,
+	"use_dark_theme": false
+};
+const TIME_LIMIT_SEC = 60;
+const TIME_WARNING_THRESHOLD = 10;
+const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
+const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
+
+const MULTIPLIER_TILE_BG_COL = "#e07a5f";
+const SQUARE_TILE_BG_COL = "#be6f7f";
+const SPECIAL_TILE_TEXT_COL = "#fefefe";	// All non-Adder tiles will use this as their text color
+const GRID_X_PADDING = 20;	// 20px padding on each side of grid
+const TILE_TEXT_SIZE = 20;	// 20px font size
+const TILE_NUMBER_LIMIT = 9;	// Tiles will have numbers in range [-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT]
+const GRID_SIZE = 5;
+const TILE_SIGN_SKEW = 5;	// Try to ensure |#positive_tiles - #negative_tiles| <= TILE_SIGN_SKEW
+
 // Default sizes. Will be updated dynamically in the |draw| method.
 // All sizes are in pixels by default.
 var TILE_SIZE = 100;
@@ -26,54 +47,38 @@ var enabled = false;
 var timeLeft = 0;
 var timerId;
 var currentPoints = 0;
-
-// User setting
-var use_click_highlighting = true;
-var enable_arithmetic_tiles = false;
-var use_dark_theme = false;
-
-const TIME_LIMIT_SEC = 60;
-const TIME_WARNING_THRESHOLD = 10;
-const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
-const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
-
-const MULTIPLIER_TILE_BG_COL = "#e07a5f";
-const SQUARE_TILE_BG_COL = "#be6f7f";
-const GRID_X_PADDING = 20;	// 20px padding on each side of grid
-const TILE_TEXT_SIZE = 20;	// 20px font size
-const TILE_NUMBER_LIMIT = 9;	// Tiles will have numbers in range [-TILE_NUMBER_LIMIT, TILE_NUMBER_LIMIT]
-const GRID_SIZE = 5;
-const TILE_SIGN_SKEW = 5;	// Try to ensure |#positive_tiles - #negative_tiles| <= TILE_SIGN_SKEW
+// This may be updated during initialization
+var activeSettings = DEFAULT_USER_SETTINGS;
 
 function getTileBgColor() {
-	return use_dark_theme ? "#202124" : "#ffffff";
+	return activeSettings["use_dark_theme"] ? "#202124" : "#ffffff";
 }
 function getTileTextColor() {
-	return use_dark_theme ? "#bdc1c6" : "#555555";
+	return activeSettings["use_dark_theme"] ? "#bdc1c6" : "#555555";
 }
 function getTileHighlightColor() {
-	return use_dark_theme ? "#383A3F" : "#e7e7e7";
+	return activeSettings["use_dark_theme"] ? "#383A3F" : "#e7e7e7";
 }
 
 class StorageManager {
 	constructor() {
 		try {
-			this.bestScoreStorage = window.localStorage;
+			this.storage = window.localStorage;
 		} catch (e) {
-			this.bestScoreStorage = null;
+			this.storage = null;
 			console.log("Could not access local storage. Error = " + e);
 		}
 	}
 
 	maybeUpdateBestScore(s) {
-		if (this.bestScoreStorage == null) {
+		if (this.storage == null) {
 			return true;
 		}
 
-		let bestScore = this.bestScoreStorage.getItem("best-score");
+		let bestScore = this.storage.getItem("best-score");
 		if ((bestScore === null && s > 0) || (bestScore !== null && parseInt(bestScore) < s)) {
 			try {
-				this.bestScoreStorage.setItem("best-score", s + "");
+				this.storage.setItem("best-score", s + "");
 			} catch (e) {
 				console.log("Could not save new best score. Error = " + e);
 			}
@@ -83,11 +88,32 @@ class StorageManager {
 	}
 
 	getBestScore() {
-		if (this.bestScoreStorage == null) {
+		if (this.storage == null) {
 			return 0;
 		}
-		let bestScore = this.bestScoreStorage.getItem("best-score");
+		let bestScore = this.storage.getItem("best-score");
 		return bestScore === null ? 0 : parseInt(bestScore);
+	}
+
+	// settings is expected to be a JSON map
+	saveSettings(settings) {
+		if (this.storage == null) {
+			return;
+		}
+		let settingsStr = JSON.stringify(settings);
+		try {
+			this.storage.setItem("settings", settingsStr);
+		} catch (e) {
+			console.log("Could not save settings. Error = " + e);
+		}
+	}
+
+	getSettings() {
+		if (this.storage == null) {
+			return null;
+		}
+		let settingsStr = this.storage.getItem("settings");
+		return settingsStr === null ? null : JSON.parse(settingsStr);
 	}
 }
 
@@ -221,7 +247,7 @@ class MultiplierTile {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
-			ctx.fillStyle = getTileBgColor();	// This will always be the background color
+			ctx.fillStyle = SPECIAL_TILE_TEXT_COL;
 			if (this.multiplier === -1) {
 				ctx.fillText("-x", this.cx, this.cy);
 			} else {
@@ -262,7 +288,7 @@ class SquareTile {
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			ctx.font = TILE_TEXT_SIZE + 'px sans-serif';
-			ctx.fillStyle = getTileBgColor();	// This will always be the background color
+			ctx.fillStyle = SPECIAL_TILE_TEXT_COL;
 			ctx.fillText("x²", this.cx, this.cy);
 		}
 	}
@@ -492,19 +518,19 @@ function generateTile(cx, cy) {
 	}
 
 	let r = Math.random();
-	if (enable_arithmetic_tiles && r > 0.9) {
+	if (activeSettings["enable_arithmetic_tiles"] && r > 0.9) {
 		// 2 MULTIPLIER
 		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
 			lastGen.MULTIPLIER = tick;
 			return new MultiplierTile(cx, cy, 2);
 		}
-	} else if (enable_arithmetic_tiles && r > 0.8) {
+	} else if (activeSettings["enable_arithmetic_tiles"] && r > 0.8) {
 		// -1 MULTIPLIER
 		if ((tick - lastGen.MULTIPLIER > 10) && numMultiplier < 1) {
 			lastGen.MULTIPLIER = tick;
 			return new MultiplierTile(cx, cy, -1);
 		}
-	} else if (enable_arithmetic_tiles && r > 0.7) {
+	} else if (activeSettings["enable_arithmetic_tiles"] && r > 0.7) {
 		// SQUARE
 		if ((tick - lastGen.SQUARE > 10) && numSquare < 1) {
 			lastGen.SQUARE = tick;
@@ -709,7 +735,7 @@ function handlePathMove(x, y) {
 
 function addListenersForDragBasedHighlighting(rect, canvas, document) {
 	canvas.addEventListener("mousedown", function(e) {
-		if (use_click_highlighting) {
+		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
@@ -720,7 +746,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		}
 	});
 	canvas.addEventListener("touchstart", function(e) {
-		if (use_click_highlighting) {
+		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		handlePathStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
@@ -732,7 +758,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 
 	});
 	canvas.addEventListener("mousemove", function(e) {
-		if (use_click_highlighting) {
+		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		if (pathManager.inPath()) {
@@ -745,7 +771,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		}
 	});
 	canvas.addEventListener("touchmove", function(e) {
-		if (use_click_highlighting) {
+		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		if (pathManager.inPath()) {
@@ -760,7 +786,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 
 	["mouseup", "touchend", "touchcancel"].forEach(function(ev) {
 		document.addEventListener(ev, function(e) {
-			if (use_click_highlighting) {
+			if (activeSettings["use_click_highlighting"]) {
 				return;
 			}
 			if (!enabled) {
@@ -786,7 +812,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 
 function addListenersForClickBasedHighlighting(rect, canvas, document) {
 	canvas.addEventListener("mousedown", function(e) {
-		if (!use_click_highlighting) {
+		if (!activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		if (!pathManager.inPath()) {
@@ -801,7 +827,7 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		}
 	});
 	document.addEventListener("mousedown", function(e) {
-		if (!use_click_highlighting) {
+		if (!activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		if (!canvas.contains(e.target)) {
@@ -813,6 +839,24 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 }
 
 function draw() {
+
+	// Initialize managers and settings first.
+	pathManager = new PathManager();
+	storageManager = new StorageManager();
+
+	let settingsOrNull = storageManager.getSettings();
+	if (settingsOrNull != null) {
+		activeSettings = settingsOrNull;
+	} else {
+		activeSettings = DEFAULT_USER_SETTINGS;
+	}
+
+	// Set theme based on settings.
+	if (activeSettings["use_dark_theme"]) {
+		document.body.classList.add('dark-theme');
+	} else {
+		document.body.classList.remove('dark-theme');
+	}
 
 	// Compute game width based on screen size.
 	// Source: https://stackoverflow.com/a/28241682.
@@ -827,10 +871,8 @@ function draw() {
 	} else {
 		TILE_SIZE = 50;
 	}
-	document.getElementById("canvas-container").style.width = TILE_SIZE *
-		GRID_SIZE + 'px';
-	document.getElementById("container").style.width = TILE_SIZE * GRID_SIZE +
-		'px';
+	document.getElementById("canvas-container").style.width = TILE_SIZE * GRID_SIZE + 'px';
+	document.getElementById("container").style.width = TILE_SIZE * GRID_SIZE + 'px';
 
 	let canvas = document.getElementById("tutorial");
 
@@ -852,9 +894,6 @@ function draw() {
 	grid = new TileGrid(0, 0);
 	grid.init();
 	grid.render(ctx);
-
-	pathManager = new PathManager();
-	storageManager = new StorageManager();
 
 	// Add listeners for both. Only one will work based on the use_click_highlighting
 	// user setting variable.
@@ -903,17 +942,17 @@ function draw() {
 			showOverlay("SETTINGS");
 
 			// Update the UI based on the setting variable we have.
-			if (use_click_highlighting) {
+			if (activeSettings["use_click_highlighting"]) {
 				document.getElementById("settings-click").checked = true;
 			} else {
 				document.getElementById("settings-gesture").checked = true;
 			}
-			if (enable_arithmetic_tiles) {
+			if (activeSettings["enable_arithmetic_tiles"]) {
 				document.getElementById("settings-arithmetic-tiles").checked = true;
 			} else {
 				document.getElementById("settings-arithmetic-tiles").checked = false;
 			}
-			if (use_dark_theme) {
+			if (activeSettings["use_dark_theme"]) {
 				document.getElementById("settings-dark-theme").checked = true;
 			} else {
 				document.getElementById("settings-dark-theme").checked = false;
@@ -924,28 +963,30 @@ function draw() {
 			// Close only the settings overlay.
 			document.getElementById("settings-overlay").style.display = "none";
 
-			// Save the settings.
 			for (let elem of document.getElementsByName("settings-highlight-method")) {
 				if (elem.checked) {
 					if (elem.value == "click") {
-						use_click_highlighting = true;
+						activeSettings["use_click_highlighting"] = true;
 					} else if (elem.value == "gesture") {
-						use_click_highlighting = false;
+						activeSettings["use_click_highlighting"] = false;
 					}
 				}
 			}
 			if (document.getElementById("settings-arithmetic-tiles").checked) {
-				enable_arithmetic_tiles = true;
+				activeSettings["enable_arithmetic_tiles"] = true;
 			} else {
-				enable_arithmetic_tiles = false;
+				activeSettings["enable_arithmetic_tiles"] = false;
 			}
 			if (document.getElementById("settings-dark-theme").checked) {
-				use_dark_theme = true;
+				activeSettings["use_dark_theme"] = true;
 				document.body.classList.add('dark-theme');
 			} else {
-				use_dark_theme = false;
+				activeSettings["use_dark_theme"] = false;
 				document.body.classList.remove('dark-theme');
 			}
+			// Save settings to storage.
+			storageManager.saveSettings(activeSettings);
+
 			// We need to re-render the grid in case the theme has changed.
 			grid.render(ctx);
 		});
