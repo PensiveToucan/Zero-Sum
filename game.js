@@ -586,9 +586,6 @@ function clearOverlays() {
 }
 
 function showOverlay(overlay_name) {
-	// Use flex for vertically aligning content in the center.
-	// For the welcome and settings overlays, we will keep content aligned to
-	// the top.
 	if (overlay_name == "SETTINGS") {
 		document.getElementById("settings-overlay").style.display = "block";
 		return;
@@ -599,11 +596,11 @@ function showOverlay(overlay_name) {
 		return;
 	}
 	if (overlay_name == "PAUSE") {
-		document.getElementById("pause-overlay").style.display = "flex";
+		document.getElementById("pause-overlay").style.display = "block";
 		return;
 	}
 	if (overlay_name == "GAME_OVER") {
-		document.getElementById("game-over-overlay").style.display = "flex";
+		document.getElementById("game-over-overlay").style.display = "block";
 		return;
 	}
 }
