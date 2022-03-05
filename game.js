@@ -686,11 +686,11 @@ function handlePathStart(x, y) {
 	if (!enabled) {
 		return;
 	}
+	if (animationRunning) {
+		return;
+	}
 	if (!pathManager.inPath()) {
 		pathManager.setInPath(true);
-		if (animationRunning) {
-			return;
-		}
 		let coords = grid.getTileForPoint(x, y);
 		if (coords == null) {
 			return;
@@ -704,6 +704,14 @@ function handlePathStart(x, y) {
 			updateCurrentPathSumText();
 			grid.highlightTile(ctx, coords.col, coords.row);
 		}
+	}
+	if (pathManager.getCurrentSum() == 0) {
+		if (animationRunning) {
+			return;
+		}
+		pathManager.setInPath(false);
+		updatePoints();
+		vanishFrame();
 	}
 }
 
@@ -713,10 +721,10 @@ function handlePathMove(x, y) {
 	if (!enabled) {
 		return;
 	}
+	if (animationRunning) {
+		return;
+	}
 	if (pathManager.inPath()) {
-		if (animationRunning) {
-			return;
-		}
 		let coords = grid.getTileForPoint(x, y);
 		if (coords == null) {
 			return;
@@ -731,6 +739,11 @@ function handlePathMove(x, y) {
 			grid.highlightTile(ctx, coords.col, coords.row);
 		}
 	}
+	if (pathManager.getCurrentSum() == 0) {
+		pathManager.setInPath(false);
+		updatePoints();
+		vanishFrame();
+	}
 }
 
 function addListenersForDragBasedHighlighting(rect, canvas, document) {
@@ -739,44 +752,19 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
-		if (pathManager.getCurrentSum() == 0) {
-			if (animationRunning) {
-				return;
-			}
-			pathManager.setInPath(false);
-			updatePoints();
-			vanishFrame();
-		}
 	});
 	canvas.addEventListener("touchstart", function(e) {
 		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		handlePathStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
-		if (pathManager.getCurrentSum() == 0) {
-			if (animationRunning) {
-				return;
-			}
-			pathManager.setInPath(false);
-			updatePoints();
-			vanishFrame();
-		}
-
 	});
 	canvas.addEventListener("mousemove", function(e) {
 		if (activeSettings["use_click_highlighting"]) {
 			return;
 		}
 		if (pathManager.inPath()) {
-			if (animationRunning) {
-				return;
-			}
 			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
-			if (pathManager.getCurrentSum() == 0) {
-				pathManager.setInPath(false);
-				updatePoints();
-				vanishFrame();
-			}
 		}
 	});
 	canvas.addEventListener("touchmove", function(e) {
@@ -784,15 +772,7 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		if (pathManager.inPath()) {
-			if (animationRunning) {
-				return;
-			}
 			handlePathMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
-			if (pathManager.getCurrentSum() == 0) {
-				pathManager.setInPath(false);
-				updatePoints();
-				vanishFrame();
-			}
 		}
 	});
 
@@ -835,14 +815,6 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		} else {
 			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
 		}
-		if (pathManager.getCurrentSum() == 0) {
-			if (animationRunning) {
-				return;
-			}
-			pathManager.setInPath(false);
-			updatePoints();
-			vanishFrame();
-		}
 	});
 	canvas.addEventListener("touchstart", function(e) {
 		if (!activeSettings["use_click_highlighting"]) {
@@ -853,40 +825,21 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 		} else {
 			handlePathMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
 		}
-		if (pathManager.getCurrentSum() == 0) {
-			if (animationRunning) {
-				return;
-			}
-			pathManager.setInPath(false);
-			updatePoints();
-			vanishFrame();
-		}
 	});
-	document.addEventListener("mousedown", function(e) {
-		if (!activeSettings["use_click_highlighting"]) {
-			return;
-		}
-		if (!canvas.contains(e.target)) {
-			if (animationRunning) {
+	["mousedown", "touchstart"].forEach(function(ev) {
+		document.addEventListener(ev, function(e) {
+			if (!activeSettings["use_click_highlighting"]) {
 				return;
 			}
-			pathManager.resetPath();
-			grid.clearHighlights(ctx);
-			updateCurrentPathSumText();
-		}
-	});
-	document.addEventListener("touchstart", function(e) {
-		if (!activeSettings["use_click_highlighting"]) {
-			return;
-		}
-		if (!canvas.contains(e.target)) {
-			if (animationRunning) {
-				return;
+			if (!canvas.contains(e.target)) {
+				if (animationRunning) {
+					return;
+				}
+				pathManager.resetPath();
+				grid.clearHighlights(ctx);
+				updateCurrentPathSumText();
 			}
-			pathManager.resetPath();
-			grid.clearHighlights(ctx);
-			updateCurrentPathSumText();
-		}
+		});
 	});
 }
 
