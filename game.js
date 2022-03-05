@@ -740,6 +740,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		}
 		handlePathStart(e.clientX - rect.left, e.clientY - rect.top);
 		if (pathManager.getCurrentSum() == 0) {
+			if (animationRunning) {
+				return;
+			}
 			pathManager.setInPath(false);
 			updatePoints();
 			vanishFrame();
@@ -751,6 +754,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 		}
 		handlePathStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
 		if (pathManager.getCurrentSum() == 0) {
+			if (animationRunning) {
+				return;
+			}
 			pathManager.setInPath(false);
 			updatePoints();
 			vanishFrame();
@@ -762,6 +768,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		if (pathManager.inPath()) {
+			if (animationRunning) {
+				return;
+			}
 			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
 			if (pathManager.getCurrentSum() == 0) {
 				pathManager.setInPath(false);
@@ -775,6 +784,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		if (pathManager.inPath()) {
+			if (animationRunning) {
+				return;
+			}
 			handlePathMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
 			if (pathManager.getCurrentSum() == 0) {
 				pathManager.setInPath(false);
@@ -793,6 +805,9 @@ function addListenersForDragBasedHighlighting(rect, canvas, document) {
 				return;
 			}
 			if (pathManager.inPath()) {
+				if (animationRunning) {
+					return;
+				}
 				pathManager.setInPath(false);
 				if (animationRunning) {
 					return;
@@ -821,6 +836,27 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 			handlePathMove(e.clientX - rect.left, e.clientY - rect.top);
 		}
 		if (pathManager.getCurrentSum() == 0) {
+			if (animationRunning) {
+				return;
+			}
+			pathManager.setInPath(false);
+			updatePoints();
+			vanishFrame();
+		}
+	});
+	canvas.addEventListener("touchstart", function(e) {
+		if (!activeSettings["use_click_highlighting"]) {
+			return;
+		}
+		if (!pathManager.inPath()) {
+			handlePathStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+		} else {
+			handlePathMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+		}
+		if (pathManager.getCurrentSum() == 0) {
+			if (animationRunning) {
+				return;
+			}
 			pathManager.setInPath(false);
 			updatePoints();
 			vanishFrame();
@@ -831,6 +867,22 @@ function addListenersForClickBasedHighlighting(rect, canvas, document) {
 			return;
 		}
 		if (!canvas.contains(e.target)) {
+			if (animationRunning) {
+				return;
+			}
+			pathManager.resetPath();
+			grid.clearHighlights(ctx);
+			updateCurrentPathSumText();
+		}
+	});
+	document.addEventListener("touchstart", function(e) {
+		if (!activeSettings["use_click_highlighting"]) {
+			return;
+		}
+		if (!canvas.contains(e.target)) {
+			if (animationRunning) {
+				return;
+			}
 			pathManager.resetPath();
 			grid.clearHighlights(ctx);
 			updateCurrentPathSumText();
@@ -986,6 +1038,10 @@ function draw() {
 			}
 			// Save settings to storage.
 			storageManager.saveSettings(activeSettings);
+
+			// We need to re-initialize the grid in case arithmetic tiles have
+			// been toggled.
+			grid.init(ctx);
 
 			// We need to re-render the grid in case the theme has changed.
 			grid.render(ctx);
