@@ -219,3 +219,7 @@ body {
 .game-over-label {
 	color: var(--labelColor);
 }
+
+#gameplay-example-div {
+	text-align: center;
+}

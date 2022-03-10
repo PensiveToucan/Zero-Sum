@@ -7,8 +7,8 @@ const DEFAULT_USER_SETTINGS = {
 };
 const TIME_LIMIT_SEC = 60;
 const TIME_WARNING_THRESHOLD = 10;
-const TILE_VANISH_RATE = 10;	// Tile dimension reduces by 10px per frame
-const TILE_DROP_RATE = 30;	// Tile drops 30px per frame
+const TILE_VANISH_RATE = 5;	// Tile dimension reduces by 10px per frame
+const TILE_DROP_RATE = 15;	// Tile drops 30px per frame
 
 const MULTIPLIER_TILE_BG_COL = "#e07a5f";
 const SQUARE_TILE_BG_COL = "#be6f7f";
