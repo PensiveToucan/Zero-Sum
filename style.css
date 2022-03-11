@@ -10,6 +10,10 @@
 	--alertRed: #c14955;
 	--highlightOrange: #e55934;
 	--richBlack: #202124;
+	--faintGray: #f1f1f1;
+	--faintBlack: #2f2f2f;
+
+	--headerFontFamily: 'League Spartan', sans-serif;
 }
 
 .light-theme {
@@ -17,6 +21,7 @@
 	--labelColor: var(--labelGray);
 	--textColor: var(--textBlack);
 	--titleColor: var(--titleBlack);
+	--faintBorderColor: var(--faintGray);
 }
 
 .dark-theme {
@@ -24,6 +29,7 @@
 	--labelColor: var(--labelGray);
 	--textColor: var(--textWhite);
 	--titleColor: var(--titleWhite);
+	--faintBorderColor: var(--faintBlack);
 }
 
 
@@ -115,8 +121,8 @@ body {
 	padding: 10px;
 }
 #game-over-table {
-	text-align: left;
-	margin: 10px auto;
+	text-align: center;
+	margin: 0px auto;
 }
 #game-over-table td {
 	padding: 5px;
@@ -142,7 +148,7 @@ body {
 }
 #pause-game-btn {
 	display: block;
-	margin: 0px auto;
+	margin: 15px auto 0 auto;
 	padding: 7px 0;
 	width: 100px;
 }
@@ -165,14 +171,17 @@ body {
 	flex-wrap: nowrap;
 	align-items: center;
 	justify-content: center;
+	border-bottom: 2px solid var(--faintBorderColor);
 }
 #header-title {
 	font-size: 20px;
 	padding: 10px;
 	color: var(--titleColor);
+	font-family: var(--headerFontFamily);
 }
 #welcome-header {
-	font-size: 30px;
+	font-size: 35px;
+	font-family: var(--headerFontFamily);
 }
 .settings-label {
 	cursor: pointer;
@@ -222,4 +231,9 @@ body {
 
 #gameplay-example-div {
 	text-align: center;
+}
+
+/* All overlays other than the welcome one should be hidden initially */
+#game-over-overlay, #settings-overlay, #pause-overlay {
+	display: none;
 }
