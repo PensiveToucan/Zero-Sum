@@ -12,6 +12,7 @@
 	--richBlack: #202124;
 	--faintGray: #f1f1f1;
 	--faintBlack: #2f2f2f;
+	--hrefBlue: rgb(0, 116, 204);
 
 	--headerFontFamily: 'League Spartan', sans-serif;
 }
@@ -236,4 +237,13 @@ body {
 /* All overlays other than the welcome one should be hidden initially */
 #game-over-overlay, #settings-overlay, #pause-overlay {
 	display: none;
+}
+#github-link {
+	font-size: 13px;
+	text-align: center;
+	margin-top: 2px;
+}
+#github-link a {
+	color: var(--hrefBlue);
+	padding: 2px;
 }
